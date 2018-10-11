@@ -3,7 +3,7 @@ def json_file_path = 'c3i_configs.json'
 def repo_name
 def arti_instance = "http://artifactory_local:9999"
 def the_json
-def credential = "ArtifactoryLocalAdmin"
+def credential = "ArtifactoryConan"
 def core_repo = "https://github.com/lasote/c3i_core.git"
 
 node("Linux"){
