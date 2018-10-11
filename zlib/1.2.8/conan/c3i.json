@@ -1,1 +1,3 @@
-{"url": "https://github.com/conan-community/conan-zlib.git", "commit": "76babb10bf4d1cee0d0c19bfec20896a4be1226a"}
+{"url": "https://github.com/conan-community/conan-zlib.git",
+ "commit": "76babb10bf4d1cee0d0c19bfec20896a4be1226a",
+ "pure_c": true}
