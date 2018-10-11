@@ -89,8 +89,10 @@ the_json["groups"].eachWithIndex { group, gix ->
           if(conf["docker_image"]){
               def image = conf["docker_image"]
               sh "docker pull $image"
-              docker.image(image).inside("-e CONAN_USER_HOME=/tmp") {
-                  Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+              withEnv(['CONAN_USER_HOME=/tmp']) {
+                  docker.image(image).inside {
+                      Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+                  }
               }
           }
           else{
