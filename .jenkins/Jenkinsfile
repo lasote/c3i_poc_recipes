@@ -71,7 +71,6 @@ the_json["groups"].eachWithIndex { group, gix ->
 
           echo ref
           echo profile
-          echo conf
 
           def curdir = pwd().toString()
           def build_folder = "${curdir}/package_repo".toString()
