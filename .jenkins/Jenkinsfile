@@ -24,18 +24,19 @@ def Process(oss, build_folder, commit, url, profile, ref, arti_instance, credent
     //Run("pip install virtualenv", true)
     withPythonEnv('python'){
          Run("pip install conan --upgrade")
+         echo "BUILD FOLDER====> ${build_folder}"
          dir(build_folder){
-           checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
-           echo pwd().toString()
-           Run("ls -la")
-           writeFile file: "_profile.txt", text: profile
-           def server = Artifactory.newServer url: arti_instance, credentialsId: credential
-           def client = Artifactory.newConanClient(userHome: build_folder)
-           def remoteName = client.remote.add server: server, repo: repo_name
-           client.run(command: "create . ${ref}  -pr _profile.txt".toString())
-           client.run(command: "remote list")
-           def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
-           server.publishBuildInfo b
+            checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
+            echo pwd().toString()
+            Run("ls -la")
+            writeFile file: "_profile.txt", text: profile
+            def server = Artifactory.newServer url: arti_instance, credentialsId: credential
+            def client = Artifactory.newConanClient(userHome: build_folder)
+            def remoteName = client.remote.add server: server, repo: repo_name
+            client.run(command: "create . ${ref}  -pr _profile.txt".toString())
+            client.run(command: "remote list")
+            def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
+            server.publishBuildInfo b
          }
     }
 }
