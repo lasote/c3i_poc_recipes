@@ -1,10 +1,12 @@
-def win_tmp_path = "C:/kk"
-def json_file_path = 'c3i_configs.json'
-def repo_name
-def arti_instance = "http://artifactory_local:9999"
-def the_json
+def arti_instance = "https://conan.jfrog.io/conan"
 def credential = "ArtifactoryConan"
 def core_repo = "https://github.com/lasote/c3i_core.git"
+
+def win_tmp_path = "C:/kk"
+def json_file_path = 'c3i_configs.json'
+def the_json
+def repo_name
+
 
 node("Linux"){
   stage("Generate builds"){
