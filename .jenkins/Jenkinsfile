@@ -29,11 +29,11 @@ def Process(oss, build_folder, commit, url, profile, ref, arti_instance, credent
             checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
             echo pwd().toString()
             Run("ls -la ${build_folder}")
-            writeFile file: "_profile.txt", text: profile
+            writeFile file: "${build_folder}/_profile.txt", text: profile
             def server = Artifactory.newServer url: arti_instance, credentialsId: credential
             def client = Artifactory.newConanClient(userHome: build_folder)
             def remoteName = client.remote.add server: server, repo: repo_name
-            client.run(command: "create ${build_folder} ${ref}  -pr _profile.txt".toString())
+            client.run(command: "create ${build_folder} ${ref}  -pr ${build_folder}/_profile.txt".toString())
             client.run(command: "remote list")
             def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
             server.publishBuildInfo b
