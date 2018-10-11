@@ -20,7 +20,7 @@ def Run(command, sudo=false){
     }
 }
 
-def Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
+def Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
     //Run("pip install virtualenv", true)
     withPythonEnv('python'){
          Run("pip install conan --upgrade")
@@ -76,27 +76,26 @@ the_json["groups"].eachWithIndex { group, gix ->
           def ref = conf["ref"].toString()
           def profile = conf["txt"].toString()
           def url = conf["url"].toString()
+          def uid = "${env.BUILD_NUMBER}_${gix}_${cdx}"
 
           echo ref
           echo profile
 
           def curdir = pwd().toString()
-          def build_folder = "${curdir}/package_repo".toString()
+          def build_folder = "${curdir}/package_repo/${uid}".toString()
           if(oss == "Windows"){
-            build_folder = win_tmp_path + "/${env.BUILD_NUMBER}_${gix}_${cdx}"
+            build_folder = win_tmp_path + "/${uid}"
           }
 
           if(conf["docker_image"]){
               def image = conf["docker_image"]
               sh "docker pull $image"
-              withEnv(['CONAN_USER_HOME=/tmp']) {
-                  docker.image(image).inside {
-                      Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
-                  }
+              docker.image(image).inside {
+                  Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
               }
           }
           else{
-                Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+                Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
           }
         }
       }
