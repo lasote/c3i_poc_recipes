@@ -44,6 +44,7 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 
 node("Linux"){
   stage("Generate builds"){
+    echo sh(returnStdout: true, script: 'env')
     def basedir = pwd()
     checkout scm
     dir(".c3_core") {
