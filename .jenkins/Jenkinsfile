@@ -10,7 +10,7 @@ def repo_name
 
 def PipInstall(p){
     command = "pip install ${p} --upgrade"
-    if(oss == "Windows"){
+    if(!isUnix()){
       bat script: command
     }
     else{
