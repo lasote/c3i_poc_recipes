@@ -7,6 +7,7 @@ def win_tmp_path = "D:/c3ipr"
 def json_file_path = 'c3i_configs.json'
 def the_json
 def repo_name
+def PR_NUM
 
 def Run(command, sudo=false){
     if(!isUnix()){
@@ -48,7 +49,9 @@ node("Linux"){
     echo "${env.BRANCH_NAME}"
     sh("printenv")
     def basedir = pwd()
-    checkout scm
+    def scmVars = checkout scm
+    PR_NUM = scmVars.GIT_BRANCH
+    echo "BRANCH => ${PR_NUM}"
     dir(".c3_core") {
       git branch: 'master', url: core_repo
       sh(script: "./c3i/master/launch.sh ${basedir} ${json_file_path}")
@@ -57,7 +60,7 @@ node("Linux"){
   }
   stage("Create Build Artifactory repo"){
     def server = Artifactory.server artifactory_name
-    repo_name = "c3i_${env.BRANCH_NAME}_${env.BUILD_NUMBER}".toString()
+    repo_name = "c3i_${PR_NUM}_${env.BUILD_NUMBER}".toString()
     def config = "{ \"key\": \"${repo_name}\", \"rclass\": \"local\", \"packageType\": \"conan\"}"
     // TODO: Get url from arti server?
     def url = "${arti_instance}/api/repositories/${repo_name}"
@@ -81,7 +84,7 @@ the_json["groups"].eachWithIndex { group, gix ->
           def ref = conf["ref"].toString()
           def profile = conf["txt"].toString()
           def url = conf["url"].toString()
-          def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
+          def uid = "${PR_NUM}_${env.BUILD_NUMBER}_${gix}_${cdx}"
 
           echo ref
           echo profile
