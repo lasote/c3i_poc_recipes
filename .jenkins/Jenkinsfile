@@ -8,16 +8,20 @@ def json_file_path = 'c3i_configs.json'
 def the_json
 def repo_name
 
+def PipInstall(package){
+    command = "pip install ${package}"
+    if(oss == "Windows"){
+      bat script: command
+    }
+    else{
+      sh script: command
+    }
+}
 
 def Process(oss, build_folder, commit, url, profile, ref){
+    PipInstall("virtualenv")
     withPythonEnv('python'){
-         command = "pip install conan"
-         if(oss == "Windows"){
-           bat script: command
-         }
-         else{
-           sh script: command
-         }
+         PipInstall("conan")
          dir(build_folder){
            checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
            writeFile file: "_profile.txt", text: profile
