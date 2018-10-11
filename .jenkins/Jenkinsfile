@@ -21,7 +21,7 @@ def Run(command, sudo=false){
 }
 
 def Process(oss, build_folder, commit, url, profile, ref){
-    Run("pip install virtualenv", sudo=true)
+    # Run("pip install virtualenv", true)
     withPythonEnv('python'){
          Run("pip install conan --upgrade")
          dir(build_folder){
