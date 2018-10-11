@@ -1,10 +1,46 @@
-def win_tmp_path = "C:/kk"
-def json_file_path = 'c3i_configs.json'
-def repo_name
-def arti_instance = "http://artifactory_local:9999"
-def the_json
-def credential = "ArtifactoryLocalAdmin"
+def arti_instance = "https://conan.jfrog.io/conan"
+def credential = "ArtifactoryConan"
+def artifactory_name = "ArtifactoryConan"
 def core_repo = "https://github.com/lasote/c3i_core.git"
+
+def win_tmp_path = "D:/c3ipr"
+def json_file_path = 'c3i_configs.json'
+def the_json
+def repo_name
+
+def Run(command, sudo=false){
+    if(!isUnix()){
+      bat script: command
+    }
+    else{
+      if(sudo){
+        command = "sudo " + command
+      }
+      sh script: command
+    }
+}
+
+def Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
+    //Run("pip install virtualenv", true)
+    withPythonEnv('python'){
+         Run("pip install conan --upgrade")
+         echo "BUILD FOLDER: ${build_folder}"
+         dir(build_folder){
+            if(!isUnix()){
+               Run("git config --global core.autocrlf false")
+            }
+            checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
+            writeFile file: "${build_folder}/_profile.txt", text: profile
+            def server = Artifactory.newServer url: arti_instance, credentialsId: credential
+            def client = Artifactory.newConanClient(userHome: build_folder)
+            def remoteName = client.remote.add server: server, repo: repo_name
+            client.run(command: "create ${build_folder} ${ref}  -pr ${build_folder}/_profile.txt".toString())
+            client.run(command: "remote list")
+            def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
+            server.publishBuildInfo b
+         }
+    }
+}
 
 node("Linux"){
   stage("Generate builds"){
@@ -17,8 +53,8 @@ node("Linux"){
     }
   }
   stage("Create Build Artifactory repo"){
-    def server = Artifactory.server "LocalArtifactory"
-    repo_name = "c3i_build_pr_${env.BUILD_NUMBER}".toString()
+    def server = Artifactory.server artifactory_name
+    repo_name = "c3i_${env.BUILD_NUMBER}".toString()
     def config = "{ \"key\": \"${repo_name}\", \"rclass\": \"local\", \"packageType\": \"conan\"}"
     // TODO: Get url from arti server?
     def url = "${arti_instance}/api/repositories/${repo_name}"
@@ -42,35 +78,31 @@ the_json["groups"].eachWithIndex { group, gix ->
           def ref = conf["ref"].toString()
           def profile = conf["txt"].toString()
           def url = conf["url"].toString()
+          def uid = "${env.BUILD_NUMBER}_${gix}_${cdx}"
 
           echo ref
           echo profile
 
           def curdir = pwd().toString()
-          def build_folder = "${curdir}/package_repo".toString()
+          def build_folder = "${curdir}/package_repo/${uid}".toString()
           if(oss == "Windows"){
-            build_folder = win_tmp_path + "/${env.BUILD_NUMBER}_${gix}_${cdx}"
+            build_folder = win_tmp_path + "/${uid}"
           }
 
-          withPythonEnv('python'){
-             command = "pip install conan"
-             if(oss == "Windows"){
-               bat script: command
+          if(conf["docker_image"] != "null"){
+              def image = conf["docker_image"]
+              sh "docker pull $image"
+              docker.image(image).inside {
+                  Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+              }
+          }
+          else if(oss == "Macos"){
+             withEnv(['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']) {
+                Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
              }
-             else{
-               sh script: command
-             }
-             dir(build_folder){
-               checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
-               writeFile file: "_profile.txt", text: profile
-               def server = Artifactory.newServer url: arti_instance, credentialsId: credential
-               def client = Artifactory.newConanClient(userHome: build_folder)
-               def remoteName = client.remote.add server: server, repo: repo_name
-               client.run(command: "create . ${ref}  -pr _profile.txt".toString())
-               client.run(command: "remote list")
-               def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
-               server.publishBuildInfo b
-             }
+          }
+          else{
+                Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
           }
         }
       }
