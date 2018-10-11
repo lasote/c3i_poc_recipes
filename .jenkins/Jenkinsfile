@@ -8,8 +8,7 @@ def json_file_path = 'c3i_configs.json'
 def the_json
 def repo_name
 
-def PipInstall(package){
-    def p = package
+def PipInstall(p){
     command = "pip install ${p} --upgrade"
     if(oss == "Windows"){
       bat script: command
