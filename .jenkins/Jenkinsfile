@@ -26,7 +26,12 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
          Run("pip install conan --upgrade")
          echo "BUILD FOLDER: ${build_folder}"
          dir(build_folder){
-            Run("git config --global core.autocrlf")
+            if(!isUnix()){
+               Run("git config --global core.autocrlf true")
+            }
+            else{
+               Run("git config --global core.autocrlf input")
+            }
             checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
             writeFile file: "${build_folder}/_profile.txt", text: profile
             def server = Artifactory.newServer url: arti_instance, credentialsId: credential
