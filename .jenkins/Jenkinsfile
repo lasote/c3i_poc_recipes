@@ -24,7 +24,7 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
     //Run("pip install virtualenv", true)
     withPythonEnv('python'){
          Run("pip install conan --upgrade")
-         echo "BUILD FOLDER: ${build_folder}"git
+         echo "BUILD FOLDER: ${build_folder}"
          dir(build_folder){
             Run("git config --global core.autocrlf")
             checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
