@@ -87,7 +87,7 @@ the_json["groups"].eachWithIndex { group, gix ->
             build_folder = win_tmp_path + "/${uid}"
           }
 
-          if(conf["docker_image"] != null){
+          if(conf["docker_image"] != "null"){
               def image = conf["docker_image"]
               sh "docker pull $image"
               docker.image(image).inside {
