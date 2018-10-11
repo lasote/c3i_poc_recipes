@@ -20,7 +20,7 @@ def Run(command, sudo=false){
     }
 }
 
-def Process(oss, build_folder, commit, url, profile, ref){
+def Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
     //Run("pip install virtualenv", true)
     withPythonEnv('python'){
          Run("pip install conan --upgrade")
@@ -88,11 +88,11 @@ the_json["groups"].eachWithIndex { group, gix ->
               def image = conf["docker_image"]
               sh "docker pull $image"
               docker.image(image).inside("-e CONAN_USER_HOME=${curdir}") {
-                  Process(oss, build_folder, commit, url, profile, ref)
+                  Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
               }
           }
           else{
-                Process(oss, build_folder, commit, url, profile, ref)
+                Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
           }
         }
       }
