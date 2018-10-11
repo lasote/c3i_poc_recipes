@@ -9,7 +9,8 @@ def the_json
 def repo_name
 
 def PipInstall(package){
-    command = "pip install ${package}"
+    def p = package
+    command = "pip install ${p} --upgrade"
     if(oss == "Windows"){
       bat script: command
     }
