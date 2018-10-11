@@ -44,7 +44,9 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 
 node("Linux"){
   stage("Generate builds"){
-    echo sh(script: 'env')
+    echo "ENTORNO"
+    echo "${env.BRANCH_NAME}"
+    sh("printenv")
     def basedir = pwd()
     checkout scm
     dir(".c3_core") {
@@ -55,7 +57,7 @@ node("Linux"){
   }
   stage("Create Build Artifactory repo"){
     def server = Artifactory.server artifactory_name
-    repo_name = "c3i_${env.GIT_BRANCH}_${env.BUILD_NUMBER}".toString()
+    repo_name = "c3i_${env.BRANCH_NAME}_${env.BUILD_NUMBER}".toString()
     def config = "{ \"key\": \"${repo_name}\", \"rclass\": \"local\", \"packageType\": \"conan\"}"
     // TODO: Get url from arti server?
     def url = "${arti_instance}/api/repositories/${repo_name}"
@@ -79,7 +81,7 @@ the_json["groups"].eachWithIndex { group, gix ->
           def ref = conf["ref"].toString()
           def profile = conf["txt"].toString()
           def url = conf["url"].toString()
-          def uid = "${env.GIT_BRANCH}_${env.BUILD_NUMBER}_${gix}_${cdx}"
+          def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
 
           echo ref
           echo profile
