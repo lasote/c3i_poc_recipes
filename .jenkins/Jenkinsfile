@@ -54,7 +54,7 @@ node("Linux"){
   }
   stage("Create Build Artifactory repo"){
     def server = Artifactory.server artifactory_name
-    repo_name = "c3i_${env.BUILD_NUMBER}".toString()
+    repo_name = "c3i_${env.JOB_NAME}_${env.BUILD_NUMBER}".toString()
     def config = "{ \"key\": \"${repo_name}\", \"rclass\": \"local\", \"packageType\": \"conan\"}"
     // TODO: Get url from arti server?
     def url = "${arti_instance}/api/repositories/${repo_name}"
@@ -78,7 +78,7 @@ the_json["groups"].eachWithIndex { group, gix ->
           def ref = conf["ref"].toString()
           def profile = conf["txt"].toString()
           def url = conf["url"].toString()
-          def uid = "${env.BUILD_NUMBER}_${gix}_${cdx}"
+          def uid = "${env.JOB_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
 
           echo ref
           echo profile
