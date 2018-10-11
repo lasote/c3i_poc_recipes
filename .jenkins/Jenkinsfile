@@ -24,10 +24,9 @@ def Process(oss, build_folder, commit, url, profile, ref, arti_instance, credent
     //Run("pip install virtualenv", true)
     withPythonEnv('python'){
          Run("pip install conan --upgrade")
-         echo "BUILD FOLDER====> ${build_folder}"
+         echo "BUILD FOLDER: ${build_folder}"
          dir(build_folder){
             checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
-            echo pwd().toString()
             Run("ls -la ${build_folder}")
             writeFile file: "${build_folder}/_profile.txt", text: profile
             def server = Artifactory.newServer url: arti_instance, credentialsId: credential
@@ -90,7 +89,7 @@ the_json["groups"].eachWithIndex { group, gix ->
           if(conf["docker_image"]){
               def image = conf["docker_image"]
               sh "docker pull $image"
-              docker.image(image).inside("-e CONAN_USER_HOME=${curdir}") {
+              docker.image(image).inside("") {
                   Process(oss, build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
               }
           }
