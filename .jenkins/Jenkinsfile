@@ -52,7 +52,7 @@ node("Linux"){
   }
   stage("Create Build Artifactory repo"){
     def server = Artifactory.server artifactory_name
-    repo_name = "c3i_build_pr_${env.BUILD_NUMBER}".toString()
+    repo_name = "c3i_${env.BUILD_NUMBER}".toString()
     def config = "{ \"key\": \"${repo_name}\", \"rclass\": \"local\", \"packageType\": \"conan\"}"
     // TODO: Get url from arti server?
     def url = "${arti_instance}/api/repositories/${repo_name}"
