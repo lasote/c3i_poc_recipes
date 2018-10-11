@@ -1,5 +1,6 @@
 def arti_instance = "https://conan.jfrog.io/conan"
 def credential = "ArtifactoryConan"
+def artifactory_name = "ArtifactoryConan"
 def core_repo = "https://github.com/lasote/c3i_core.git"
 
 def win_tmp_path = "C:/kk"
@@ -19,7 +20,7 @@ node("Linux"){
     }
   }
   stage("Create Build Artifactory repo"){
-    def server = Artifactory.server "LocalArtifactory"
+    def server = Artifactory.server artifactory_name
     repo_name = "c3i_build_pr_${env.BUILD_NUMBER}".toString()
     def config = "{ \"key\": \"${repo_name}\", \"rclass\": \"local\", \"packageType\": \"conan\"}"
     // TODO: Get url from arti server?
