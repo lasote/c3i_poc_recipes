@@ -8,18 +8,20 @@ def json_file_path = 'c3i_configs.json'
 def the_json
 def repo_name
 
-def PipInstall(p){
-    command = "pip install ${p} --upgrade"
+def Run(command, sudo){
     if(!isUnix()){
       bat script: command
     }
     else{
+      if(sudo){
+        command = "sudo " + command
+      }
       sh script: command
     }
 }
 
 def Process(oss, build_folder, commit, url, profile, ref){
-    PipInstall("virtualenv")
+    Run("pip install virtualenv", sudo=True)
     withPythonEnv('python'){
          PipInstall("conan")
          dir(build_folder){
