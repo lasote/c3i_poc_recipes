@@ -3,7 +3,7 @@ def credential = "ArtifactoryConan"
 def artifactory_name = "ArtifactoryConan"
 def core_repo = "https://github.com/lasote/c3i_core.git"
 
-def win_tmp_path = "C:/c3ipr"
+def win_tmp_path = "D:/c3ipr"
 def json_file_path = 'c3i_configs.json'
 def the_json
 def repo_name
@@ -24,7 +24,8 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
     //Run("pip install virtualenv", true)
     withPythonEnv('python'){
          Run("pip install conan --upgrade")
-         echo "BUILD FOLDER: ${build_folder}"
+         Run("git config --global core.autocrlf input")
+         echo "BUILD FOLDER: ${build_folder}"git 
          dir(build_folder){
             checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
             writeFile file: "${build_folder}/_profile.txt", text: profile
