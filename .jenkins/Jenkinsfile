@@ -3,7 +3,7 @@ def credential = "ArtifactoryConan"
 def artifactory_name = "ArtifactoryConan"
 def core_repo = "https://github.com/lasote/c3i_core.git"
 
-def win_tmp_path = "C:/kk"
+def win_tmp_path = "C:/c3ipr"
 def json_file_path = 'c3i_configs.json'
 def the_json
 def repo_name
@@ -27,7 +27,6 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
          echo "BUILD FOLDER: ${build_folder}"
          dir(build_folder){
             checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
-            Run("ls -la ${build_folder}")
             writeFile file: "${build_folder}/_profile.txt", text: profile
             def server = Artifactory.newServer url: arti_instance, credentialsId: credential
             def client = Artifactory.newConanClient(userHome: build_folder)
@@ -93,6 +92,11 @@ the_json["groups"].eachWithIndex { group, gix ->
               docker.image(image).inside {
                   Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
               }
+          }
+          else if(oss == "Macos"){
+             withEnv(['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']) {
+                Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+             }
           }
           else{
                 Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
