@@ -1,0 +1,82 @@
+def win_tmp_path = "C:/kk"
+def json_file_path = 'c3i_configs.json'
+def repo_name
+def arti_instance = "http://artifactory_local:9999"
+def the_json
+def credential = "ArtifactoryLocalAdmin"
+def core_repo = "https://github.com/lasote/c3i_core.git"
+
+node("Linux"){
+  stage("Generate builds"){
+    def basedir = pwd()
+    checkout scm
+    dir(".c3_core") {
+      git branch: 'master', url: core_repo
+      sh(script: "./c3i/master/launch.sh ${basedir} ${json_file_path}")
+      the_json = readJSON file: json_file_path
+    }
+  }
+  stage("Create Build Artifactory repo"){
+    def server = Artifactory.server "LocalArtifactory"
+    repo_name = "c3i_build_pr_${env.BUILD_NUMBER}".toString()
+    def config = "{ \"key\": \"${repo_name}\", \"rclass\": \"local\", \"packageType\": \"conan\"}"
+    // TODO: Get url from arti server?
+    def url = "${arti_instance}/api/repositories/${repo_name}"
+    def response = httpRequest url:url, \
+                               httpMode: "PUT", \
+                               requestBody: config, \
+                               authentication: credential, \
+    						   customHeaders: [[name: "content-type", value: "application/json"]]
+  }
+}
+
+
+the_json["groups"].eachWithIndex { group, gix ->
+  def builders = [:]
+  group.eachWithIndex { conf, cdx ->
+    def oss = conf["oss"]
+    builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
+      node(oss) {
+        stage("${oss} - Stage ${gix} - Build ${cdx}"){
+          def commit = conf["commit"].toString()
+          def ref = conf["ref"].toString()
+          def profile = conf["txt"].toString()
+          def url = conf["url"].toString()
+
+          echo ref
+          echo profile
+
+          def curdir = pwd().toString()
+          def build_folder = "${curdir}/package_repo".toString()
+          if(oss == "Windows"){
+            build_folder = win_tmp_path + "/${env.BUILD_NUMBER}_${gix}_${cdx}"
+          }
+
+          withPythonEnv('python'){
+             command = "pip install conan"
+             if(oss == "Windows"){
+               bat script: command
+             }
+             else{
+               sh script: command
+             }
+             dir(build_folder){
+               checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
+               writeFile file: "_profile.txt", text: profile
+               def server = Artifactory.newServer url: arti_instance, credentialsId: credential
+               def client = Artifactory.newConanClient(userHome: build_folder)
+               def remoteName = client.remote.add server: server, repo: repo_name
+               client.run(command: "create . ${ref}  -pr _profile.txt".toString())
+               client.run(command: "remote list")
+               def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
+               server.publishBuildInfo b
+             }
+          }
+        }
+      }
+    }
+  }
+
+  parallel builders
+}
+
