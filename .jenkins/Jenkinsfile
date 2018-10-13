@@ -39,7 +39,7 @@ def Run(command, sudo=false, returnStatus=false){
       if(sudo){
         command = "sudo " + command
       }
-        ret = sh script: command, returnStatus: returnStatus
+      ret = sh script: command, returnStatus: returnStatus
     }
     return ret
 }
@@ -61,7 +61,7 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 
             withEnv(["CONAN_USER_HOME=${build_folder}"]){
                 def create = "conan create ${build_folder} ${ref}  -pr ${build_folder}/_profile.txt".toString()
-                def ret = Run(create)
+                def ret = Run(create, sudo=false, returnStatus=true)
                 if(ret == 6){
                   echo "Skipping configuration!"
                 }
