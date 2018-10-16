@@ -85,7 +85,7 @@ node("Linux"){
     def scmVars = checkout scm
     dir(".c3_core") {
       git branch: 'master', url: core_repo
-      sh(script: "./c3i/master/launch.sh ${basedir} ${json_file_path}")
+      sh(script: "./c3i/pull_request/launch.sh ${basedir} ${json_file_path}")
       the_json = readJSON file: json_file_path
     }
   }
@@ -103,7 +103,7 @@ node("Linux"){
 }
 
 
-the_json["groups"].eachWithIndex { group, gix ->
+the_json["stages"].eachWithIndex { group, gix ->
   def builders = [:]
   group.eachWithIndex { conf, cdx ->
     def oss = conf["oss"]
