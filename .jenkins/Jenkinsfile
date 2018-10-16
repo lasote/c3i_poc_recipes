@@ -64,7 +64,7 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
                 def ret = Run(create, false, true)
                 if(ret != 0){
                     def create = "conan create ${build_folder} ${ref} -pr ${build_folder}/_profile.txt".toString()
-                    def ret = Run(create, false, true)
+                    ret = Run(create, false, true)
                     if(ret == 6){
                       echo "Skipping configuration!"
                     }
