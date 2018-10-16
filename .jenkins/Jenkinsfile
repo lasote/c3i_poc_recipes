@@ -60,18 +60,25 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
             def remoteName = client.remote.add server: server, repo: repo_name
 
             withEnv(["CONAN_USER_HOME=${build_folder}"]){
-                def create = "conan create ${build_folder} ${ref}  -pr ${build_folder}/_profile.txt".toString()
+                def install = "conan install ${build_folder} ${ref} -pr ${build_folder}/_profile.txt --build never -r ${remoteName}".toString()
                 def ret = Run(create, false, true)
-                if(ret == 6){
-                  echo "Skipping configuration!"
-                }
-                else if(ret == 0){
-                  client.run(command: "remote list")
-                  def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
-                  server.publishBuildInfo b
+                if(ret != 0){
+                    def create = "conan create ${build_folder} ${ref} -pr ${build_folder}/_profile.txt".toString()
+                    def ret = Run(create, false, true)
+                    if(ret == 6){
+                      echo "Skipping configuration!"
+                    }
+                    else if(ret == 0){
+                      client.run(command: "remote list")
+                      def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
+                      server.publishBuildInfo b
+                    }
+                    else{
+                        throw new Exception("Conan create error ${ret}")
+                    }
                 }
                 else{
-                    throw new Exception("Conan create error ${ret}")
+                    echo "Skipping, binary already found in the repository!"
                 }
             }
          }
