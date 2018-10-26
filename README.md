@@ -3,7 +3,7 @@
 
 ## C3I: Generate automatically the binaries for your Conan recipes at Bintray:conan-center
 
-You can contribute with your Conan package to the JFrog Bintray "conan-center" central repository by submitting a Pull Request to this repository:
+You can contribute with your Conan package to the [JFrog Bintray "conan-center" central repository](https://bintray.com/conan/conan-center) by submitting a Pull Request to this repository:
 
 - Fork this repository
 - Add a new `c3i.json` file poiting to your repository containing the recipe in a folder "package_name/package_version/username". E.g `mylibrary/1.8.1/myusername` you can use any `myusername`, for example your github nickname.
