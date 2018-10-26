@@ -1,7 +1,7 @@
 <a href="http://jfrog.com"><img src="https://res-2.cloudinary.com/crunchbase-production/image/upload/c_lpad,h_120,w_120,f_auto,b_white,q_auto:eco/v1397198554/51281b50b797124bebc82ab956d93893.jpg" width=100></a><a href="https://bintray.com/conan/conan-center"><img src="https://support.jfrog.com/resource/1534758892000/BR_JFC_Resource/img/Bintray.png" width=100></a><a href="https://conan.io"><img src="https://files.startupranking.com/startup/thumb/58827_bd1ac1623dea41fd4a3293a79b54836dca168619_conan_m.png" width=100></a>
 
 
-## C3I: Automatically generate binaries for your Conan recipes at Bintray:conan-center
+## C3I: Generate automatically more than a hundred binaries for your Conan recipes at Bintray:conan-center
 
 You can contribute with your Conan package to the JFrog Bintray "conan-center" central repository by submitting a Pull Request to this repository:
 
