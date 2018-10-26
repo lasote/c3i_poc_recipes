@@ -16,7 +16,7 @@ You can contribute with your Conan package to the JFrog Bintray "conan-center" c
 ```
 - Submit a pull request (one package change => one PR)
 
-Conan will generate more than a hundred binary packages for the mainstream configurations, and once accepted, the recipe and all the packages will be upload to the [conan-center] repository.
+Conan will generate more than a hundred binary packages for the mainstream configurations, and once accepted, the recipe and all the packages will be upload to the [conan-center](https://bintray.com/conan/conan-center) repository.
 
 - GCC: 4.9, 5, 6, 7
 - Clang: 3.8, 3.9, 4.0
