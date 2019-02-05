@@ -85,7 +85,7 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
     }
 }
 
-node("Linux"){
+node("c3i-docker"){
   stage("Generate builds: "){
     echo "${env.BRANCH_NAME}"
     def basedir = pwd()
