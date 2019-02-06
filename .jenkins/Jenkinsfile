@@ -87,6 +87,7 @@ else{
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
           dir(".c3_core") {
+             Run("pip install -r c3i/requirements.txt")
              git branch: 'master', url: core_repo
              sh(script: "./c3i/pull_request/launch.sh ${basedir} ${json_file_path}")
              the_json = readJSON file: json_file_path
