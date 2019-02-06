@@ -76,8 +76,9 @@ if(current_branch == "master"){
                Run("pip install -r c3i/requirements.txt")
                withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
                   withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
-                  def command = $/./c3i/util/merge_pr.sh ${arti_instance} $$USER_PASS/$
-                  sh command
+                      def command = $/./c3i/util/merge_pr.sh ${arti_instance} $$USER_PASS/$
+                      sh command
+                  }
                }
             }
         }
