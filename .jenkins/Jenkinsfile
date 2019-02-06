@@ -102,9 +102,12 @@ else{
               def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
               def commit_short = commit.substring(0,7)
               def description = "${env.BUILD_NUMBER}"
-              repo_name = "c3i_${env.BRANCH_NAME}_{commit_short}".toString()
-              def command = $/./c3i/util/create_repo.sh ${arti_instance} ${repo_name} ${description} $$USER_PASS /$
-              sh command
+              repo_name = "c3i_${env.BRANCH_NAME}_${commit_short}".toString()
+              dir(".c3_core") {
+                git branch: 'master', url: core_repo
+                def command = $/./c3i/util/create_repo.sh ${arti_instance} ${repo_name} ${description} $$USER_PASS/$
+                sh command
+              }
           }
        }
     }
