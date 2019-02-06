@@ -133,7 +133,6 @@ the_json["stages"].eachWithIndex { group, gix ->
                 //sh 'pip install conan'
                 sh 'pip install conan-package-tools'
                 sh 'conan -v'
-                sh 'python3 run.py'
             }
         }
         stage("${oss} - Stage ${gix} - Build ${cdx}"){
