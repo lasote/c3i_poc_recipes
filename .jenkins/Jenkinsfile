@@ -129,9 +129,8 @@ the_json["stages"].eachWithIndex { group, gix ->
                 sh 'apt-get update'
                 sh 'apt-get install -y python3-pip'
                 sh 'pip3 install --upgrade pip'
-                sh 'pip -V'
-                //sh 'pip install conan'
                 sh 'pip install conan-package-tools'
+                sh 'pip install virtualenv'
                 sh 'conan -v'
             }
         }
