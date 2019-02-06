@@ -69,8 +69,8 @@ if(current_branch == "master"){
         stage("Merge PR packages"){
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
             dir(".c3_core") {
-               Run("pip install -r c3i/requirements.txt")
                git branch: 'master', url: core_repo
+               Run("pip install -r c3i/requirements.txt")
                withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
                   sh '''
                      set +x
@@ -87,8 +87,8 @@ else{
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
           dir(".c3_core") {
-             Run("pip install -r c3i/requirements.txt")
              git branch: 'master', url: core_repo
+             Run("pip install -r c3i/requirements.txt")
              sh(script: "./c3i/pull_request/launch.sh ${basedir} ${json_file_path}")
              the_json = readJSON file: json_file_path
           }
