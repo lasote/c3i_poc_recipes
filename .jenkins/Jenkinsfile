@@ -75,7 +75,8 @@ if(current_branch == "master"){
                git branch: 'master', url: core_repo
                Run("pip install -r c3i/requirements.txt")
                withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-                  sh './c3i/util/merge_pr.sh ${arti_instance} $USER_PASS \\"${commit_message}\\"'
+                  def command = $/ ./c3i/util/merge_pr.sh ${arti_instance} $$USER_PASS \\\"${commit_message}\\\"/$
+                  sh command
                }
             }
         }
@@ -96,7 +97,7 @@ else{
        }
        stage("Create Build Artifactory: ${repo_name}"){
           withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-              sh './c3i/util/create_repo.sh ${arti_instance} ${repo_name} $USER_PASS'
+              sh './c3i/util/create_repo.sh ${arti_instance} ${repo_name} $USER_PASS
           }
        }
     }
