@@ -29,6 +29,7 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 
      Run("pip install conan --upgrade")
      echo "BUILD FOLDER: ${build_folder}"
+     echo "REPOSITORY: ${repo_name}"
      dir(build_folder){
         if(!isUnix()){
            Run("git config --global core.autocrlf false")
