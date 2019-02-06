@@ -5,29 +5,9 @@ def core_repo = "https://github.com/lasote/c3i_core.git"
 
 def win_tmp_path = "C:/J/c3ipr"
 def json_file_path = 'c3i_configs.json'
-def repo_name = "c3i_${env.BRANCH_NAME}_${env.BUILD_NUMBER}".toString()
+def repo_name
 def the_json
-
-def abortPreviousRunningBuilds() {
-  def hi = Hudson.instance
-  def pname = env.JOB_NAME.split('/')[0]
-
-  hi.getItem(pname).getItem(env.JOB_BASE_NAME).getBuilds().each{ build ->
-    def exec = build.getExecutor()
-
-    if (build.number != currentBuild.number && exec != null) {
-      exec.interrupt(
-        Result.ABORTED,
-        new CauseOfInterruption.UserInterruption(
-          "Aborted by #${currentBuild.number}"
-        )
-      )
-      println("Aborted previous running build #${build.number}")
-    } else {
-      println("Build is not running or is current build, not aborting - #${build.number}")
-    }
-  }
-}
+def current_branch = "${env.BRANCH_NAME}"
 
 
 def Run(command, sudo=false, returnStatus=false){
@@ -85,90 +65,110 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 
 }
 
-node("Linux"){
-  stage("Generate builds: "){
-    echo "${env.BRANCH_NAME}"
-    def basedir = pwd()
-    def scmVars = checkout scm
-    dir(".c3_core") {
-      git branch: 'master', url: core_repo
-      sh(script: "./c3i/pull_request/launch.sh ${basedir} ${json_file_path}")
-      the_json = readJSON file: json_file_path
-    }
-  }
-  stage("Create Build Artifactory: ${repo_name}"){
-    def server = Artifactory.server artifactory_name
-    def config = "{ \"key\": \"${repo_name}\", \"rclass\": \"local\", \"packageType\": \"conan\"}"
-    // TODO: Get url from arti server?
-    def url = "${arti_instance}/api/repositories/${repo_name}"
-    def response = httpRequest url:url, \
-                               httpMode: "PUT", \
-                               requestBody: config, \
-                               authentication: credential, \
-    						   customHeaders: [[name: "content-type", value: "application/json"]]
-  }
-}
-
-
-the_json["stages"].eachWithIndex { group, gix ->
-  def builders = [:]
-  group.eachWithIndex { conf, cdx ->
-    def oss = conf["oss"]
-    def commit = conf["commit"].toString()
-    def ref = conf["ref"].toString()
-    def profile = conf["txt"].toString()
-    def url = conf["url"].toString()
-    def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
-
-    builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
-      node(oss) {
-        stage("${oss} - Provision"){
-            if(oss == "c3i-docker"){ // REMOVE THIS WHEN THE IMAGES ARE CORRECT
-                sh 'docker version'
-                sh 'python3 -V'
-                sh 'apt-get update'
-                sh 'apt-get install -y python3-pip cmake'
-                sh 'pip3 install --upgrade pip'
-                sh 'pip3 install conan-package-tools'
-                sh 'pip3 install virtualenv'
-                sh 'conan -v'
+if(current_branch == "master"){
+    node("Linux"){
+        stage("Merge PR packages"){
+            checkout scm
+            echo "${env.BRANCH_NAME}"
+            def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
+            dir(".c3_core") {
+               git branch: 'master', url: core_repo
+               Run("pip install -r c3i/requirements.txt")
+               withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
+                  withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
+                      def command = $/./c3i/util/merge_pr.sh ${arti_instance} $$USER_PASS/$
+                      sh command
+                  }
+               }
             }
-            else if(oss == "Macos"){
-                sh 'pip install virtualenv --user'
-            }
-            else if(oss == "Windows"){
-                bat 'python -m pip install --upgrade pip'
-                bat 'pip install virtualenv'
-            }
-
         }
-        stage("${oss} - Stage ${gix} - Build ${cdx}"){
-          echo ref
-          echo profile
-          def curdir = pwd().toString()
-          def build_folder = "${curdir}/package_repo/${uid}".toString()
-          if(oss == "Windows"){
-            build_folder = win_tmp_path + "/${uid}"
+    }
+}
+else{
+    node("Linux"){
+       stage("Calculate builds: "){
+          checkout scm
+          def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+          echo "${env.BRANCH_NAME}"
+          def basedir = pwd()
+          dir(".c3_core") {
+             git branch: 'master', url: core_repo
+             Run("pip install -r c3i/requirements.txt")
+             sh(script: "./c3i/pull_request/launch.sh ${basedir} ${json_file_path}")
+             the_json = readJSON file: json_file_path
           }
+       }
+       stage("Create Build Artifactory:"){
+          withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
+              def commit_short = commit.substring(0,7)
+              def description = "${env.BUILD_NUMBER}"
+              repo_name = "c3i_${env.BRANCH_NAME}_{commit_short}".toString()
+              def command = $/./c3i/util/create_repo.sh ${arti_instance} ${repo_name} ${description} $$USER_PASS /$
+              sh command
+          }
+       }
+    }
 
-          def env = []
-          if(oss == "Macos"){
-              env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
-          }
-          withEnv(env) {
-            if(oss != "c3i-docker"){
-                withPythonEnv('python'){
+
+    the_json["stages"].eachWithIndex { group, gix ->
+      def builders = [:]
+      group.eachWithIndex { conf, cdx ->
+        def oss = conf["oss"]
+        def commit = conf["commit"].toString()
+        def ref = conf["ref"].toString()
+        def profile = conf["txt"].toString()
+        def url = conf["url"].toString()
+        def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
+
+        builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
+          node(oss) {
+            stage("${oss} - Provision"){
+                if(oss == "c3i-docker"){ // REMOVE THIS WHEN THE IMAGES ARE CORRECT
+                    sh 'docker version'
+                    sh 'python3 -V'
+                    sh 'apt-get update'
+                    sh 'apt-get install -y python3-pip cmake'
+                    sh 'pip3 install --upgrade pip'
+                    sh 'pip3 install conan-package-tools'
+                    sh 'pip3 install virtualenv'
+                    sh 'conan -v'
+                }
+                else if(oss == "Macos"){
+                    sh 'pip install virtualenv --user'
+                }
+                else if(oss == "Windows"){
+                    bat 'python -m pip install --upgrade pip'
+                    bat 'pip install virtualenv'
+                }
+
+            }
+            stage("${oss} - Stage ${gix} - Build ${cdx}"){
+              echo ref
+              echo profile
+              def curdir = pwd().toString()
+              def build_folder = "${curdir}/package_repo/${uid}".toString()
+              if(oss == "Windows"){
+                build_folder = win_tmp_path + "/${uid}"
+              }
+
+              def env = []
+              if(oss == "Macos"){
+                  env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
+              }
+              withEnv(env) {
+                if(oss != "c3i-docker"){
+                    withPythonEnv('python'){
+                        Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+                    }
+                }
+                else{
                     Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
                 }
-            }
-            else{
-                Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+              }
             }
           }
         }
       }
+      parallel builders
     }
-  }
-  parallel builders
 }
-
