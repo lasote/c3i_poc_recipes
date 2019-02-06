@@ -67,6 +67,8 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 if(current_branch == "master"){
     node("Linux"){
         stage("Merge PR packages"){
+            checkout scm
+            echo "${env.BRANCH_NAME}"
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
             dir(".c3_core") {
                git branch: 'master', url: core_repo
@@ -81,6 +83,7 @@ if(current_branch == "master"){
 else{
     node("Linux"){
        stage("Calculate builds: "){
+          checkout scm
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
           dir(".c3_core") {
@@ -143,7 +146,6 @@ else{
               if(oss == "Macos"){
                   env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
               }
-              withEnv(env) {
                 if(oss != "c3i-docker"){
                     withPythonEnv('python'){
                         Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
