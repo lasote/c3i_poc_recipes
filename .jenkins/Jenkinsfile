@@ -134,9 +134,10 @@ the_json["stages"].eachWithIndex { group, gix ->
                 sh 'conan -v'
             }
             else if(oss == "Macos"){
-                sh 'pip install virtualenv'
+                sh 'pip install virtualenv --user'
             }
             else if(oss == "Windows"){
+                bat 'python -m pip install --upgrade pip'
                 bat 'pip install virtualenv'
             }
 
