@@ -73,7 +73,7 @@ if(current_branch == "master"){
                withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
                   sh '''
                      set +x
-                     python ./c3i/util/merge_pr.py ${arti_instance} $USER_PASS "${commit_message}"
+                     ./c3i/util/merge_pr.sh ${arti_instance} $USER_PASS "${commit_message}"
                   '''
                }
             }
@@ -95,7 +95,7 @@ else{
           withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
               sh '''
                  set +x
-                 python ./c3i/util/create_repo.py ${arti_instance} ${repo_name} $USER_PASS
+                 ./c3i/util/create_repo.sh ${arti_instance} ${repo_name} $USER_PASS
                '''
           }
        }
