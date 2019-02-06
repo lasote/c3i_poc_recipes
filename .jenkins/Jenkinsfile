@@ -3,7 +3,7 @@ def credential = "c3i_on_artifactory"
 def artifactory_name = "ArtifactoryConan"
 def core_repo = "https://github.com/lasote/c3i_core.git"
 
-def win_tmp_path = "D:/c3ipr"
+def win_tmp_path = "C:/J/c3ipr"
 def json_file_path = 'c3i_configs.json'
 def repo_name = "c3i_${env.BRANCH_NAME}_${env.BUILD_NUMBER}".toString()
 def the_json
