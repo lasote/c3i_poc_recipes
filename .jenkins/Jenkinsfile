@@ -46,7 +46,7 @@ def Run(command, sudo=false, returnStatus=false){
 
 def Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
     //Run("pip install virtualenv", true)
-    withPythonEnv('python'){
+    withPythonEnv('python3'){
          Run("pip install conan --upgrade")
          echo "BUILD FOLDER: ${build_folder}"
          dir(build_folder){
