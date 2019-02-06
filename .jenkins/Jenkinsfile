@@ -97,7 +97,8 @@ else{
        }
        stage("Create Build Artifactory: ${repo_name}"){
           withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-              sh './c3i/util/create_repo.sh ${arti_instance} ${repo_name} $USER_PASS
+              def command = $/./c3i/util/create_repo.sh ${arti_instance} ${repo_name} $$USER_PASS /$
+              sh command
           }
        }
     }
