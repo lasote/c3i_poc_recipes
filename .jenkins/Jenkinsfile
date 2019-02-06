@@ -112,7 +112,6 @@ else{
        }
     }
 
-
     the_json["stages"].eachWithIndex { group, gix ->
       def builders = [:]
       group.eachWithIndex { conf, cdx ->
