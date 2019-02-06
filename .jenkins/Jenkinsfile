@@ -1,5 +1,5 @@
 def arti_instance = "https://conan.jfrog.io/conan"
-def credential = "ArtifactoryConan"
+def credential = "c3i_on_artifactory"
 def artifactory_name = "ArtifactoryConan"
 def core_repo = "https://github.com/lasote/c3i_core.git"
 
