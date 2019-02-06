@@ -127,7 +127,7 @@ the_json["stages"].eachWithIndex { group, gix ->
                 sh 'docker version'
                 sh 'python3 -V'
                 sh 'apt-get update'
-                sh 'apt-get install -y python3-pip'
+                sh 'apt-get install -y python3-pip cmake'
                 sh 'pip3 install --upgrade pip'
                 sh 'pip3 install conan-package-tools'
                 sh 'pip3 install virtualenv'
