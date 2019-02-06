@@ -1,5 +1,4 @@
-{"url": "https://github.com/conan-community/conan-bzip2.git",
- "commit": "6126a0b8c3f9c3c2c0c787996ae19158ec3efea3",
+{"url": "https://github.com/lasote/conan-bzip2.git",
+ "commit": "7016199fc5aa981b4b3bfdf8f9bc059db62ea37e",
  "pure_c": true
 }
-
