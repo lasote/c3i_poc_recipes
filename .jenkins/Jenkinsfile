@@ -114,37 +114,34 @@ the_json["stages"].eachWithIndex { group, gix ->
   def builders = [:]
   group.eachWithIndex { conf, cdx ->
     def oss = conf["oss"]
+    def commit = conf["commit"].toString()
+    def ref = conf["ref"].toString()
+    def profile = conf["txt"].toString()
+    def url = conf["url"].toString()
+    def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
+
     builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
       node(oss) {
         stage("${oss} - Stage ${gix} - Build ${cdx}"){
-          def commit = conf["commit"].toString()
-          def ref = conf["ref"].toString()
-          def profile = conf["txt"].toString()
-          def url = conf["url"].toString()
-          def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
-
           echo ref
           echo profile
-
           def curdir = pwd().toString()
           def build_folder = "${curdir}/package_repo/${uid}".toString()
           if(oss == "Windows"){
             build_folder = win_tmp_path + "/${uid}"
           }
 
+          def env = []
           if(oss == "Macos"){
-             withEnv(['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']) {
-                Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
-             }
+              env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
           }
-          else{
+          withEnv(env) {
                 Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
           }
         }
       }
     }
   }
-
   parallel builders
 }
 
