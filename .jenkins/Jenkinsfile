@@ -88,7 +88,6 @@ else{
     node("Linux"){
        stage("Calculate builds: "){
           checkout scm
-          def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
           dir(".c3_core") {
@@ -100,6 +99,7 @@ else{
        }
        stage("Create Build Artifactory:"){
           withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
+              def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
               def commit_short = commit.substring(0,7)
               def description = "${env.BUILD_NUMBER}"
               repo_name = "c3i_${env.BRANCH_NAME}_{commit_short}".toString()
