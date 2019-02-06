@@ -5,7 +5,7 @@ def core_repo = "https://github.com/lasote/c3i_core.git"
 
 def win_tmp_path = "C:/J/c3ipr"
 def json_file_path = 'c3i_configs.json'
-def repo_name = "c3i_${env.BRANCH_NAME}_${env.BUILD_NUMBER}".toString()
+def repo_name
 def the_json
 def current_branch = "${env.BRANCH_NAME}"
 
@@ -88,6 +88,7 @@ else{
     node("Linux"){
        stage("Calculate builds: "){
           checkout scm
+          def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
           dir(".c3_core") {
@@ -97,9 +98,12 @@ else{
              the_json = readJSON file: json_file_path
           }
        }
-       stage("Create Build Artifactory: ${repo_name}"){
+       stage("Create Build Artifactory:"){
           withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-              def command = $/./c3i/util/create_repo.sh ${arti_instance} ${repo_name} $$USER_PASS /$
+              def commit_short = commit.substring(0,7)
+              def description = "${env.BUILD_NUMBER}"
+              repo_name = "c3i_${env.BRANCH_NAME}_{commit_short}".toString()
+              def command = $/./c3i/util/create_repo.sh ${arti_instance} ${repo_name} ${description} $$USER_PASS /$
               sh command
           }
        }
