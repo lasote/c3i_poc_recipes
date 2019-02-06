@@ -146,6 +146,7 @@ else{
               if(oss == "Macos"){
                   env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
               }
+              withEnv(env) {
                 if(oss != "c3i-docker"){
                     withPythonEnv('python'){
                         Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
