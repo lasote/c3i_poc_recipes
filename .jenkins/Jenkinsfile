@@ -71,7 +71,7 @@ if(current_branch == "master"){
             checkout scm
             echo "${env.BRANCH_NAME}"
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
-            commit_message = commit_message.replace("#", "\#")
+            commit_message = commit_message.replace("#", "\\#")
             dir(".c3_core") {
                git branch: 'master', url: core_repo
                Run("pip install -r c3i/requirements.txt")
