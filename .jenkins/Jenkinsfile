@@ -132,14 +132,7 @@ the_json["stages"].eachWithIndex { group, gix ->
             build_folder = win_tmp_path + "/${uid}"
           }
 
-          if(conf["docker_image"] != "null"){
-              def image = conf["docker_image"]
-              sh "docker pull $image"
-              docker.image(image).inside {
-                  Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
-              }
-          }
-          else if(oss == "Macos"){
+          if(oss == "Macos"){
              withEnv(['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']) {
                 Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
              }
