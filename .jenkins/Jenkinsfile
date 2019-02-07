@@ -22,11 +22,19 @@ def Run(command, sudo=false, returnStatus=false){
     return ret
 }
 
+def pipInstall(command, env_name){
+    withPythonEnv(env_name){
+        Run("pip install ${command}")
+    }
+}
+
+
 def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       Run("pip install -e .")
+       def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+       pipInstall("conan -e .", commit)
    }
 }
 
@@ -42,8 +50,9 @@ def RunCore(command, arti_instance, credential){
 }
 
 
+
 def Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
-     Run("pip install conan --upgrade")
+     pipInstall("conan --upgrade", repo_name)
      echo "BUILD FOLDER: ${build_folder}"
      echo "REPOSITORY: ${repo_name}"
      dir(build_folder){
@@ -154,9 +163,7 @@ else{
 
                       withEnv(env) {
                         if(oss != "c3i-docker"){
-                            withPythonEnv('python'){
-                                Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
-                            }
+                            Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
                         }
                         else{
                             Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
