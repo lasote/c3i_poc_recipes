@@ -88,7 +88,7 @@ if(current_branch == "master"){
 else{
     node("Linux"){
        def c3i_build_number = "${env.BUILD_NUMBER}"
-       stage("Calculate builds: "){
+       stage("Calculate builds"){
           checkout scm
           def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
           def commit_short = commit.substring(0,7)
@@ -102,7 +102,7 @@ else{
              the_json = readJSON file: json_file_path
           }
        }
-       stage("Create Build Artifactory:"){
+       stage("Create Build Artifactory"){
           withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
               dir(".c3_core") {
                 git branch: 'master', url: core_repo
@@ -188,14 +188,18 @@ else{
                     }
                   }
                   dir(".c3_core") {
-                     def command = $/ c3i/pull_request/bin/set_success.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
-                     Run(command)
+                     withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
+                        def command = $/ c3i/pull_request/bin/set_success.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                        Run(command)
+                     }
                   }
               }
               catch(error){
                  dir(".c3_core") {
-                     def command = $/ c3i/pull_request/bin/set_failed.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
-                     Run(command)
+                     withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
+                         def command = $/ c3i/pull_request/bin/set_failed.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                         Run(command)
+                     }
                  }
                  throw error
               }
