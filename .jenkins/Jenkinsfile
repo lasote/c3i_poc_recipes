@@ -167,10 +167,11 @@ else{
                             Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
                         }
                       }
-                      RunCore("set_success ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}")
+                      def command = $/ set_success ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                      RunCore(command)
                   }
                   catch(error){
-                     def command = $/ c3i/pull_request/bin/set_failed.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                     def command = $/ set_failed ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
                      RunCore(command)
 
                      throw error
