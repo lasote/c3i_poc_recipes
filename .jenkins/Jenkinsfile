@@ -27,13 +27,13 @@ def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
        Run("pip install -e . --user")
    }
 }
 
 
 def RunCore(command, arti_instance, credential){
+    InstallCore()
     echo "Run c3i core"
     withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
         withCredentials([usernameColonPassword(credentialsId: credential,
@@ -93,7 +93,6 @@ if(current_branch == "master"){
             checkout scm
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
             echo "Commit message: ${commit_message}"
-            InstallCore()
             withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
                RunCore("merge_pr", arti_instance, credential)
             }
@@ -104,7 +103,6 @@ else{
     def the_json
     node("Linux"){
        def c3i_build_number = "${env.BUILD_NUMBER}"
-       InstallCore()
        stage("Calculate builds"){
           checkout scm
           def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
@@ -135,7 +133,6 @@ else{
             node(oss) {
                 stage("${oss} - Provision"){
                     Run("pip install virtualenv --user")
-                    InstallCore()
                 }
                 stage("${oss} - Stage ${gix} - Build ${cdx}"){
                   echo ref
