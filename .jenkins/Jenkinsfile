@@ -23,20 +23,18 @@ def Run(command, sudo=false, returnStatus=false){
 }
 
 def InstallCore(){
-   step("Install c3i core"){
-       dir(".c3_core") {
-           git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-           Run("pip install -e .")
-       }
+   echo "Install c3i core")
+   dir(".c3_core") {
+       git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
+       Run("pip install -e .")
    }
 }
 
 
 def RunCore(command){
-    step("Run c3i core"){
-        withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-           Run(command)
-        }
+    echo "Run c3i core"
+    withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
+       Run(command)
     }
 }
 
