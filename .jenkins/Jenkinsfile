@@ -1,7 +1,6 @@
 def arti_instance = "https://conan.jfrog.io/conan"
 def credential = "c3i_on_artifactory"
 def artifactory_name = "ArtifactoryConan"
-def core_repo = "https://github.com/lasote/c3i_core.git"
 
 def win_tmp_path = "C:/J/c3ipr"
 def json_file_path = 'c3i_configs.json'
@@ -25,7 +24,7 @@ def Run(command, sudo=false, returnStatus=false){
 
 def InstallCore(){
     dir(".c3_core") {
-       git branch: 'master', url: core_repo
+       git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
        Run("pip install -e .")
     }
 }
@@ -139,11 +138,6 @@ else{
                   def build_folder = "${curdir}/package_repo/${uid}".toString()
                   if(oss == "Windows"){
                     build_folder = win_tmp_path + "/${uid}"
-                  }
-
-                  dir(".c3_core") {
-                     // To call success or fail later
-                     git branch: 'master', url: core_repo
                   }
 
                   def env = []
