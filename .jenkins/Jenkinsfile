@@ -97,6 +97,7 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 if(current_branch == "master"){
     node("Linux"){
         stage("Merge PR packages"){
+            sh "pip install virtualenv --user"
             checkout scm
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
             echo "Commit message: ${commit_message}"
@@ -141,6 +142,7 @@ else{
          builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
             node(oss) {
                 stage("${oss} - Provision"){
+                    Run("pip install virtualenv --user")
                     InstallCore()
                 }
                 stage("${oss} - Stage ${gix} - Build ${cdx}"){
