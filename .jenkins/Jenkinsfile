@@ -34,7 +34,7 @@ def InstallCore(){
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
        def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-       pipInstall("conan -e .", commit)
+       pipInstall("-e .", commit)
    }
 }
 
