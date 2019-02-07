@@ -27,8 +27,6 @@ def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       /*FIXME: Shared in the same slave between builds, fails two -e, but now could be concurre
-        ncy issues/*
        Run("pip install -e . --upgrade")
    }
 }
