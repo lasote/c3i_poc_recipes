@@ -6,7 +6,6 @@ def core_repo = "https://github.com/lasote/c3i_core.git"
 def win_tmp_path = "C:/J/c3ipr"
 def json_file_path = 'c3i_configs.json'
 def repo_name
-def the_json
 def current_branch = "${env.BRANCH_NAME}"
 
 
@@ -23,6 +22,21 @@ def Run(command, sudo=false, returnStatus=false){
     }
     return ret
 }
+
+def InstallCore(){
+    dir(".c3_core") {
+       git branch: 'master', url: core_repo
+       Run("pip install -e .")
+    }
+}
+
+
+def RunCore(command){
+    withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
+       Run(command)
+    }
+}
+
 
 def Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
     //Run("pip install virtualenv", true)
@@ -66,28 +80,26 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 
 }
 
+
 if(current_branch == "master"){
     node("Linux"){
         stage("Merge PR packages"){
             checkout scm
             echo "${env.BRANCH_NAME}"
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
-            dir(".c3_core") {
-               git branch: 'master', url: core_repo
-               Run("pip install -r c3i/requirements.txt")
-               withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-                  withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
-                      def command = $/c3i/pull_request/bin/merge_pr.sh ${arti_instance} $$USER_PASS/$
-                      sh command
-                  }
-               }
+            InstallCore()
+            withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
+               def command = $/merge_pr ${arti_instance} $$USER_PASS/$
+               RunCore(command)
             }
         }
     }
 }
 else{
+    def the_json
     node("Linux"){
        def c3i_build_number = "${env.BUILD_NUMBER}"
+       InstallCore()
        stage("Calculate builds"){
           checkout scm
           def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
@@ -95,116 +107,82 @@ else{
           repo_name = "c3i_${env.BRANCH_NAME}_${commit_short}".toString()
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
-          dir(".c3_core") {
-             git branch: 'master', url: core_repo
-             Run("pip install -r c3i/requirements.txt")
-             sh(script: "./c3i/pull_request/bin/calculate_builds.sh ${basedir} ${json_file_path} ${repo_name}")
-             the_json = readJSON file: json_file_path
-          }
+          RunCore("calculate_builds ${basedir} ${json_file_path} ${repo_name}")
+          the_json = readJSON file: json_file_path
        }
        stage("Create Build Artifactory"){
-          withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-              dir(".c3_core") {
-                git branch: 'master', url: core_repo
-                def command = $/./c3i/pull_request/bin/init_repo.sh ${arti_instance} ${repo_name} ${c3i_build_number} $$USER_PASS/$
-                sh command
-              }
-          }
+          def command = $/init_repo ${arti_instance} ${repo_name} ${c3i_build_number} $$USER_PASS/$
+          RunCore(command)
        }
     }
 
     the_json["stages"].eachWithIndex { group, gix ->
       def builders = [:]
       group.eachWithIndex { conf, cdx ->
-        def oss = conf["oss"]
-        def commit = conf["commit"].toString()
-        def ref = conf["ref"].toString()
-        def profile = conf["profile"].toString()
-        def profile_id = conf["profile_id"].toString()
-        def url = conf["url"].toString()
-        def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
+         def oss = conf["oss"]
+         def commit = conf["commit"].toString()
+         def ref = conf["ref"].toString()
+         def profile = conf["profile"].toString()
+         def profile_id = conf["profile_id"].toString()
+         def url = conf["url"].toString()
+         def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
 
-        builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
-          node(oss) {
-            def extension
-            if(oss == "Windows"){
-               extension = "bat"
-            }
-            else{
-               extension = "sh"
-            }
-            stage("${oss} - Provision"){
-                if(oss == "c3i-docker"){ // REMOVE THIS WHEN THE IMAGES ARE CORRECT
-                    sh 'docker version'
-                    sh 'python3 -V'
-                    sh 'apt-get update'
-                    sh 'apt-get install -y python3-pip cmake'
-                    sh 'pip3 install --upgrade pip'
-                    sh 'pip3 install conan-package-tools'
-                    sh 'pip3 install virtualenv'
-                    sh 'conan -v'
+         builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
+            node(oss) {
+                stage("${oss} - Provision"){
+                    InstallCore()
+                    else if(oss == "Macos"){
+                        sh 'pip install virtualenv --user'
+                    }
+                    else if(oss == "Windows"){
+                        bat 'python -m pip install --upgrade pip'
+                        bat 'pip install virtualenv'
+                    }
                 }
-                else if(oss == "Macos"){
-                    sh 'pip install virtualenv --user'
-                }
-                else if(oss == "Windows"){
-                    bat 'python -m pip install --upgrade pip'
-                    bat 'pip install virtualenv'
-                }
-
-            }
-            stage("${oss} - Stage ${gix} - Build ${cdx}"){
-              echo ref
-              echo profile
-              def curdir = pwd().toString()
-              def build_folder = "${curdir}/package_repo/${uid}".toString()
-              if(oss == "Windows"){
-                build_folder = win_tmp_path + "/${uid}"
-              }
-
-              dir(".c3_core") {
-                 // To call success or fail later
-                 git branch: 'master', url: core_repo
-              }
-
-              def env = []
-              if(oss == "Macos"){
-                  env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
-              }
-              try{
-                  // REMOVE THIS!!!
-                  if(profile.contains("Debug")){
-                    print("FALLANDO APOSTA")
-                    throw new Exception("I made this fail, because I'm evil")
+                stage("${oss} - Stage ${gix} - Build ${cdx}"){
+                  echo ref
+                  echo profile
+                  def curdir = pwd().toString()
+                  def build_folder = "${curdir}/package_repo/${uid}".toString()
+                  if(oss == "Windows"){
+                    build_folder = win_tmp_path + "/${uid}"
                   }
 
-                  withEnv(env) {
-                    if(oss != "c3i-docker"){
-                        withPythonEnv('python'){
+                  dir(".c3_core") {
+                     // To call success or fail later
+                     git branch: 'master', url: core_repo
+                  }
+
+                  def env = []
+                  if(oss == "Macos"){
+                      env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
+                  }
+                  try{
+                      // REMOVE THIS!!!
+                      if(profile.contains("Debug")){
+                        print("FALLANDO APOSTA")
+                        throw new Exception("I made this fail, because I'm evil")
+                      }
+
+                      withEnv(env) {
+                        if(oss != "c3i-docker"){
+                            withPythonEnv('python'){
+                                Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+                            }
+                        }
+                        else{
                             Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
                         }
-                    }
-                    else{
-                        Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
-                    }
+                      }
+                      RunCore("set_success ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}")
                   }
-                  dir(".c3_core") {
-                     withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-                        def command = $/ c3i/pull_request/bin/set_success.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
-                        Run(command)
-                     }
+                  catch(error){
+                     def command = $/ c3i/pull_request/bin/set_failed.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                     RunCore(command)
+
+                     throw error
                   }
               }
-              catch(error){
-                 dir(".c3_core") {
-                     withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-                         def command = $/ c3i/pull_request/bin/set_failed.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
-                         Run(command)
-                     }
-                 }
-                 throw error
-              }
-            }
           }
         }
       }
