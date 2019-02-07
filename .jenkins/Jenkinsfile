@@ -131,13 +131,6 @@ else{
             node(oss) {
                 stage("${oss} - Provision"){
                     InstallCore()
-                    else if(oss == "Macos"){
-                        sh 'pip install virtualenv --user'
-                    }
-                    else if(oss == "Windows"){
-                        bat 'python -m pip install --upgrade pip'
-                        bat 'pip install virtualenv'
-                    }
                 }
                 stage("${oss} - Stage ${gix} - Build ${cdx}"){
                   echo ref
