@@ -23,16 +23,20 @@ def Run(command, sudo=false, returnStatus=false){
 }
 
 def InstallCore(){
-    dir(".c3_core") {
-       git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       Run("pip install -e .")
-    }
+   step("Install c3i core"){
+       dir(".c3_core") {
+           git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
+           Run("pip install -e .")
+       }
+   }
 }
 
 
 def RunCore(command){
-    withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-       Run(command)
+    step("Run c3i core"){
+        withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
+           Run(command)
+        }
     }
 }
 
@@ -84,8 +88,8 @@ if(current_branch == "master"){
     node("Linux"){
         stage("Merge PR packages"){
             checkout scm
-            echo "${env.BRANCH_NAME}"
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
+            echo "Commit message: ${commit_message}"
             InstallCore()
             withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
                def command = $/merge_pr ${arti_instance} $$USER_PASS/$
