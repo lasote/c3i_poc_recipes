@@ -33,7 +33,8 @@ def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       pipInstall("conan -e .", repo_name)
+       def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+       pipInstall("conan -e .", commit)
    }
 }
 
