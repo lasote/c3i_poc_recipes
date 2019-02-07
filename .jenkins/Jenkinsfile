@@ -77,7 +77,7 @@ if(current_branch == "master"){
                Run("pip install -r c3i/requirements.txt")
                withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
                   withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
-                      def command = $/./c3i/pull_request/bin/merge_pr.sh ${arti_instance} $$USER_PASS/$
+                      def command = $/c3i/pull_request/bin/merge_pr.sh ${arti_instance} $$USER_PASS/$
                       sh command
                   }
                }
@@ -87,11 +87,11 @@ if(current_branch == "master"){
 }
 else{
     node("Linux"){
+       def c3i_build_number = "${env.BUILD_NUMBER}"
        stage("Calculate builds: "){
           checkout scm
           def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
           def commit_short = commit.substring(0,7)
-          def c3i_build_number = "${env.BUILD_NUMBER}"
           repo_name = "c3i_${env.BRANCH_NAME}_${commit_short}".toString()
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
