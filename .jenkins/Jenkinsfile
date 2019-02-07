@@ -23,7 +23,7 @@ def Run(command, sudo=false, returnStatus=false){
 }
 
 def pipInstall(command){
-    withPythonEnv(${env.BUILD_NUMBER}){
+    withPythonEnv(env.BUILD_NUMBER){
         Run("pip install ${command}")
     }
 }
