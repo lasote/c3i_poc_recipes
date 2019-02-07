@@ -31,17 +31,18 @@ def InstallCore(){
 }
 
 
-def RunCore(command, credential){
+def RunCore(command, arti_instance, credential){
     echo "Run c3i core"
-    withCredentials([usernameColonPassword(credentialsId: credential, variable: 'USER_PASS')]) {
-       Run(command)
+    witEnv(["ARTIFACTORY_URL=${arti_instance}"]){
+        withCredentials([usernameColonPassword(credentialsId: credential,
+                                               variable: 'ARTIFACTORY_CREDENTIALS')]) {
+           Run(command)
+        }
     }
 }
 
 
 def Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
-    //Run("pip install virtualenv", true)
-
      Run("pip install conan --upgrade")
      echo "BUILD FOLDER: ${build_folder}"
      echo "REPOSITORY: ${repo_name}"
@@ -90,8 +91,7 @@ if(current_branch == "master"){
             echo "Commit message: ${commit_message}"
             InstallCore()
             withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
-               def command = $/merge_pr ${arti_instance} $$USER_PASS/$
-               RunCore(command, credential)
+               RunCore("merge_pr", arti_instance, credential)
             }
         }
     }
@@ -108,13 +108,11 @@ else{
           repo_name = "c3i_${env.BRANCH_NAME}_${commit_short}".toString()
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
-          def command = $/calculate_builds ${arti_instance} $$USER_PASS ${basedir} ${json_file_path} ${repo_name}/$
-          RunCore(command, credential)
+          RunCore("calculate_builds ${basedir} ${json_file_path} ${repo_name}", arti_instance, credential)
           the_json = readJSON file: json_file_path
        }
        stage("Create Build Artifactory"){
-          def command = $/init_repo ${arti_instance} $$USER_PASS ${repo_name} ${c3i_build_number}/$
-          RunCore(command, credential)
+          RunCore("init_repo ${repo_name} ${c3i_build_number}", arti_instance, credential)
        }
     }
 
@@ -164,13 +162,10 @@ else{
                             Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
                         }
                       }
-                      def command = $/ set_success ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
-                      RunCore(command, credential)
+                      RunCore("set_success ${repo_name} ${profile_id}", arti_instance, credential)
                   }
                   catch(error){
-                     def command = $/ set_failed ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
-                     RunCore(command, credential)
-
+                     RunCore("set_failed ${repo_name} ${profile_id}", arti_instance, credential)
                      throw error
                   }
               }
