@@ -155,6 +155,12 @@ else{
                 build_folder = win_tmp_path + "/${uid}"
               }
 
+              dir(".c3_core") {
+                 // To call success or fail later
+                 git branch: 'master', url: core_repo
+                 Run("pip install -r c3i/requirements.txt")
+              }
+
               def env = []
               if(oss == "Macos"){
                   env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
@@ -175,13 +181,17 @@ else{
                         Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
                     }
                   }
-                  def command = $/./c3i/pull_request/bin/set_success.sh ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
-                  sh command
+                  dir(".c3_core") {
+                     def command = $/./c3i/pull_request/bin/set_success.sh ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                     Run(command)
+                  }
               }
               catch(error){
-                def command = $/./c3i/pull_request/bin/set_failed.sh ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
-                sh command
-                throw error
+                 dir(".c3_core") {
+                     def command = $/./c3i/pull_request/bin/set_failed.sh ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                     Run(command)
+                 }
+                 throw error
               }
             }
           }
