@@ -23,7 +23,7 @@ def Run(command, sudo=false, returnStatus=false){
 }
 
 def InstallCore(){
-   echo "Install c3i core")
+   echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
        Run("pip install -e .")
