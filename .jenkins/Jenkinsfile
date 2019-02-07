@@ -161,7 +161,7 @@ else{
               }
               try{
                   // REMOVE THIS!!!
-                  if profile.contains("Debug"){
+                  if(profile.contains("Debug")){
                     throw new Exception("I made this fail, because I'm evil")
                   }
 
