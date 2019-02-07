@@ -22,8 +22,8 @@ def Run(command, sudo=false, returnStatus=false){
     return ret
 }
 
-def pipInstall(command, env_name){
-    withPythonEnv(env_name){
+def pipInstall(command){
+    withPythonEnv(${env.BUILD_NUMBER}){
         Run("pip install ${command}")
     }
 }
@@ -34,17 +34,19 @@ def InstallCore(){
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
        def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-       pipInstall("-e .", commit)
+       pipInstall("-e .")
    }
 }
 
 
 def RunCore(command, arti_instance, credential){
     echo "Run c3i core"
-    withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
-        withCredentials([usernameColonPassword(credentialsId: credential,
-                                               variable: 'ARTIFACTORY_CREDENTIALS')]) {
-           Run(command)
+    withPythonEnv(${env.BUILD_NUMBER}){
+        withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
+            withCredentials([usernameColonPassword(credentialsId: credential,
+                                                   variable: 'ARTIFACTORY_CREDENTIALS')]) {
+               Run(command)
+            }
         }
     }
 }
@@ -52,7 +54,7 @@ def RunCore(command, arti_instance, credential){
 
 
 def Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
-     pipInstall("conan --upgrade", repo_name)
+     pipInstall("conan --upgrade")
      echo "BUILD FOLDER: ${build_folder}"
      echo "REPOSITORY: ${repo_name}"
      dir(build_folder){
