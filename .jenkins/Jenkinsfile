@@ -126,6 +126,13 @@ else{
 
         builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
           node(oss) {
+            def extension
+            if(oss == "Windows"){
+               extension = "bat"
+            }
+            else{
+               extension = "sh"
+            }
             stage("${oss} - Provision"){
                 if(oss == "c3i-docker"){ // REMOVE THIS WHEN THE IMAGES ARE CORRECT
                     sh 'docker version'
@@ -158,7 +165,6 @@ else{
               dir(".c3_core") {
                  // To call success or fail later
                  git branch: 'master', url: core_repo
-                 Run("pip install -r c3i/requirements.txt")
               }
 
               def env = []
@@ -182,13 +188,13 @@ else{
                     }
                   }
                   dir(".c3_core") {
-                     def command = $/./c3i/pull_request/bin/set_success.sh ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                     def command = $/ c3i/pull_request/bin/set_success.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
                      Run(command)
                   }
               }
               catch(error){
                  dir(".c3_core") {
-                     def command = $/./c3i/pull_request/bin/set_failed.sh ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
+                     def command = $/ c3i/pull_request/bin/set_failed.${extension} ${arti_instance} $$USER_PASS ${repo_name} ${profile_id}/$
                      Run(command)
                  }
                  throw error
