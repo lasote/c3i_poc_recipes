@@ -135,6 +135,7 @@ else{
        }
        stage("Create Build Artifactory"){
           RunCore("init_repo ${repo_name} ${c3i_build_number}", arti_instance, credential)
+          echo "https://conan.jfrog.io/conan/webapp/#/artifacts/browse/tree/Properties/${repo_name}"
        }
     }
 
