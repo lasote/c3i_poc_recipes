@@ -23,6 +23,7 @@ def Run(command, sudo=false, returnStatus=false){
 }
 
 def getPythonName(){
+    // FROM THE CONFIGURATION OF Jenkins / Global Tool Configuration / Python of ShiningPanda
     if (isUnix()) {
         def uname = sh script: 'uname', returnStdout: true
         if (uname.startsWith("Darwin")) {
@@ -151,7 +152,7 @@ else{
          builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
             node(oss) {
                 stage("${oss} - Provision"){
-                    // Run("pip install virtualenv --user")
+                    Run("pip install virtualenv")
                 }
                 stage("${oss} - Stage ${gix} - Build ${cdx}"){
                   echo ref
