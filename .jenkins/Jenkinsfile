@@ -168,7 +168,7 @@ else{
                   }
                   try{
                       // REMOVE THIS!!!
-                      if(profile.contains("MDd")){
+                      if(profile.contains("NEVERHAPPEN")){
                         print("FALLANDO APOSTA")
                         throw new Exception("I made this fail, because I'm evil")
                       }
