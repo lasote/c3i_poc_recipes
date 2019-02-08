@@ -113,7 +113,8 @@ if(current_branch == "master"){
             checkout scm
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
             echo "Commit message: ${commit_message}"
-            withEnv(["COMMIT_MESSAGE=${commit_message}"]){ // I'm not able to pass quoted message without failing...
+            // I'm not able to pass quoted message without failing...
+            withEnv(["COMMIT_MESSAGE=${commit_message}"]){
                RunCore("merge_pr", arti_instance, credential)
             }
         }
@@ -167,7 +168,7 @@ else{
                   }
                   try{
                       // REMOVE THIS!!!
-                      if(profile.contains("Debug")){
+                      if(profile.contains("MDd")){
                         print("FALLANDO APOSTA")
                         throw new Exception("I made this fail, because I'm evil")
                       }
