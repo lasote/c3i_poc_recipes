@@ -27,7 +27,9 @@ def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       Run("pip install . --user")
+       withPythonEnv("venv_${env.BUILD_NUMBER}"){
+            Run("pip install -e .")
+       }
    }
 }
 
@@ -35,14 +37,12 @@ def InstallCore(){
 def RunCore(command, arti_instance, credential){
     InstallCore()
     echo "Run c3i core"
-    def separator = ":"
-    if(!isUnix()){
-       separator = ";"
-    }
-    withEnv(["ARTIFACTORY_URL=${arti_instance}", "PATH=${env.PATH}${separator}/.local/bin"]){
+    withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
         withCredentials([usernameColonPassword(credentialsId: credential,
                                                variable: 'ARTIFACTORY_CREDENTIALS')]) {
-           Run(command)
+           withPythonEnv("venv_${env.BUILD_NUMBER}"){
+                Run(command)
+           }
         }
     }
 }
