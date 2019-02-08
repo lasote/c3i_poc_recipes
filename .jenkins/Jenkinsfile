@@ -22,12 +22,27 @@ def Run(command, sudo=false, returnStatus=false){
     return ret
 }
 
+def getPythonName(){
+    if (isUnix()) {
+        def uname = sh script: 'uname', returnStdout: true
+        if (uname.startsWith("Darwin")) {
+            return "MacPython"
+        }
+        else {
+            return "LinuxPython"
+        }
+    }
+    else {
+        return "WinPython"
+    }
+}
+
 
 def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       withPythonEnv("LinuxPython"){
+       withPythonEnv(getPythonName()){
             Run("pip install -e .")
        }
    }
@@ -40,7 +55,7 @@ def RunCore(command, arti_instance, credential){
     withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
         withCredentials([usernameColonPassword(credentialsId: credential,
                                                variable: 'ARTIFACTORY_CREDENTIALS')]) {
-           withPythonEnv("LinuxPython"){
+           withPythonEnv(getPythonName()){
                 Run(command)
            }
         }
