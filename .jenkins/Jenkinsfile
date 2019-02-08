@@ -22,12 +22,29 @@ def Run(command, sudo=false, returnStatus=false){
     return ret
 }
 
+def getPythonName(){
+    if (isUnix()) {
+        def uname = sh script: 'uname', returnStdout: true
+        if (uname.startsWith("Darwin")) {
+            return "MacPython"
+        }
+        else {
+            return "LinuxPython"
+        }
+    }
+    else {
+        return "WinPython"
+    }
+}
+
 
 def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       Run("pip install . --user")
+       withPythonEnv(getPythonName()){
+            Run("pip install -e .")
+       }
    }
 }
 
@@ -35,14 +52,12 @@ def InstallCore(){
 def RunCore(command, arti_instance, credential){
     InstallCore()
     echo "Run c3i core"
-    def separator = ":"
-    if(!isUnix()){
-       separator = ";"
-    }
-    withEnv(["ARTIFACTORY_URL=${arti_instance}", "PATH=${env.PATH}${separator}/.local/bin"]){
+    withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
         withCredentials([usernameColonPassword(credentialsId: credential,
                                                variable: 'ARTIFACTORY_CREDENTIALS')]) {
-           Run(command)
+           withPythonEnv(getPythonName()){
+                Run(command)
+           }
         }
     }
 }
@@ -93,7 +108,7 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 if(current_branch == "master"){
     node("Linux"){
         stage("Merge PR packages"){
-            sh "pip install virtualenv --user"
+            sh "pip install virtualenv"
             checkout scm
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
             echo "Commit message: ${commit_message}"
