@@ -27,7 +27,7 @@ def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
-       Run("pip install -e . --upgrade")
+       Run("python setup.py install --user")
    }
 }
 
@@ -35,7 +35,7 @@ def InstallCore(){
 def RunCore(command, arti_instance, credential){
     InstallCore()
     echo "Run c3i core"
-    withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
+    withEnv(["ARTIFACTORY_URL=${arti_instance}", "PATH=${env.HOME}/.local/bin"]){
         withCredentials([usernameColonPassword(credentialsId: credential,
                                                variable: 'ARTIFACTORY_CREDENTIALS')]) {
            Run(command)
@@ -132,7 +132,7 @@ else{
          builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
             node(oss) {
                 stage("${oss} - Provision"){
-                    Run("pip install virtualenv --user")
+                    // Run("pip install virtualenv --user")
                 }
                 stage("${oss} - Stage ${gix} - Build ${cdx}"){
                   echo ref
