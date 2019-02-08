@@ -42,7 +42,7 @@ def getPythonName(){
 def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
-       git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
+       git branch: 'master', url: "https://github.com/lasote/c3i_core.git", credentialsId: "GHCLONEPRIVATE"
        withPythonEnv(getPythonName()){
             Run("pip install -e .")
        }
