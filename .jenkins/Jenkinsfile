@@ -151,9 +151,6 @@ else{
 
          builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
             node(oss) {
-                stage("${oss} - Provision"){
-                    Run("python3 -m pip install virtualenv")
-                }
                 stage("${oss} - Stage ${gix} - Build ${cdx}"){
                   echo ref
                   echo profile
