@@ -40,7 +40,7 @@ def RunCore(command, arti_instance, credential){
     withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
         withCredentials([usernameColonPassword(credentialsId: credential,
                                                variable: 'ARTIFACTORY_CREDENTIALS')]) {
-           withPythonEnv("python"){
+           withPythonEnv("LinuxPython"){
                 Run(command)
            }
         }
