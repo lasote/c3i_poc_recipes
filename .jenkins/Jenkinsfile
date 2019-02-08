@@ -28,7 +28,7 @@ def InstallCore(){
    dir(".c3_core") {
        git branch: 'master', url: "https://github.com/lasote/c3i_core.git"
        withPythonEnv("venv_${env.BUILD_NUMBER}"){
-            Run("pip install -e .")
+            pysh("pip install -e .")
        }
    }
 }
