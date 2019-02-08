@@ -35,7 +35,11 @@ def InstallCore(){
 def RunCore(command, arti_instance, credential){
     InstallCore()
     echo "Run c3i core"
-    withEnv(["ARTIFACTORY_URL=${arti_instance}", "PATH=${env.HOME}/.local/bin"]){
+    def separator = ":"
+    if(!isUnix()){
+       separator = ";"
+    }
+    withEnv(["ARTIFACTORY_URL=${arti_instance}", "PATH=${env.PATH}${separator}/.local/bin"]){
         withCredentials([usernameColonPassword(credentialsId: credential,
                                                variable: 'ARTIFACTORY_CREDENTIALS')]) {
            Run(command)
