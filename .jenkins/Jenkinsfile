@@ -39,7 +39,7 @@ def getPythonName(){
 }
 
 
-def InstallCore(){
+def InstallCore(credential){
    echo "Install c3i core"
    dir(".c3_core") {
        withPythonEnv(getPythonName()){
@@ -53,7 +53,7 @@ def InstallCore(){
 
 
 def RunCore(command, arti_instance, credential){
-    InstallCore()
+    InstallCore(credential)
     echo "Run c3i core"
     withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
         withCredentials([usernameColonPassword(credentialsId: credential,
