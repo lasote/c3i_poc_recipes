@@ -1,7 +1,6 @@
 def arti_instance = "https://conan.jfrog.io/conan"
 def credential = "c3i_on_artifactory"
 def artifactory_name = "ArtifactoryConan"
-def pypi_repo = "https://conan.jfrog.io/conan/api/pypi/virtual-conan-pypi/simple"
 
 def win_tmp_path = "C:/J/c3ipr"
 def json_file_path = 'c3i_configs.json'
@@ -44,7 +43,7 @@ def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        withPythonEnv(getPythonName()){
-            Run("pip install c3i-core --index-url=${pypi_repo} --update")
+            Run("pip install c3i-core --index-url="https://conan.jfrog.io/conan/api/pypi/virtual-conan-pypi/simple" --update")
        }
    }
 }
