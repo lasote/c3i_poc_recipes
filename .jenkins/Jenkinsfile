@@ -43,7 +43,7 @@ def InstallCore(){
    echo "Install c3i core"
    dir(".c3_core") {
        withPythonEnv(getPythonName()){
-            Run("pip install c3i-core --index-url=https://conan.jfrog.io/conan/api/pypi/virtual-conan-pypi/simple --update")
+            Run("pip install c3i_core --index-url=https://conan.jfrog.io/conan/api/pypi/virtual-conan-pypi/simple --upgrade")
        }
    }
 }
