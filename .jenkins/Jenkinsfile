@@ -45,7 +45,7 @@ def InstallCore(credential){
        withPythonEnv(getPythonName()){
            withCredentials([usernameColonPassword(credentialsId: credential,
                                                variable: 'ARTIFACTORY_CREDENTIALS')]) {
-            Run("pip install c3i_core --index-url=https://${ARTIFACTORY_CREDENTIALS}@conan.jfrog.io/conan/api/pypi/virtual-conan-pypi/simple --upgrade")
+            Run("pip install c3i_core --index-url=https://${ARTIFACTORY_CREDENTIALS}@conan.jfrog.io/conan/api/pypi/virtual-conan-pypi/simple --upgrade --no-cache")
            }
        }
    }
@@ -112,7 +112,6 @@ def Process(build_folder, commit, url, profile, ref, arti_instance, credential, 
 if(current_branch == "master"){
     node("Linux"){
         stage("Merge PR packages"){
-            sh "pip install virtualenv"
             checkout scm
             def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
             echo "Commit message: ${commit_message}"
