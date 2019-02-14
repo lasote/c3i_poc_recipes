@@ -1,3 +1,5 @@
+@Library('c3i')
+
 def arti_instance = "https://conan.jfrog.io/conan"
 def credential = "c3i_on_artifactory"
 def artifactory_name = "ArtifactoryConan"
@@ -8,107 +10,6 @@ def repo_name
 def current_branch = "${env.BRANCH_NAME}"
 
 
-def Run(command, sudo=false, returnStatus=false){
-    def ret
-    if(!isUnix()){
-      ret = bat script: command, returnStatus: returnStatus
-    }
-    else{
-      if(sudo){
-        command = "sudo " + command
-      }
-      ret = sh script: command, returnStatus: returnStatus
-    }
-    return ret
-}
-
-def getPythonName(){
-    // FROM THE CONFIGURATION OF Jenkins / Global Tool Configuration / Python of ShiningPanda
-    if (isUnix()) {
-        def uname = sh script: 'uname', returnStdout: true
-        if (uname.startsWith("Darwin")) {
-            return "MacPython"
-        }
-        else {
-            return "LinuxPython"
-        }
-    }
-    else {
-        return "WinPython"
-    }
-}
-
-
-def InstallCore(credential){
-   echo "Install c3i core"
-   dir(".c3_core") {
-       withPythonEnv(getPythonName()){
-           withCredentials([usernameColonPassword(credentialsId: credential,
-                                               variable: 'ARTIFACTORY_CREDENTIALS')]) {
-            Run("pip install c3i_core --index-url=https://${ARTIFACTORY_CREDENTIALS}@conan.jfrog.io/conan/api/pypi/virtual-conan-pypi/simple --upgrade --no-cache")
-           }
-       }
-   }
-}
-
-
-def RunCore(command, arti_instance, credential){
-    InstallCore(credential)
-    echo "Run c3i core"
-    withEnv(["ARTIFACTORY_URL=${arti_instance}"]){
-        withCredentials([usernameColonPassword(credentialsId: credential,
-                                               variable: 'ARTIFACTORY_CREDENTIALS')]) {
-           withPythonEnv(getPythonName()){
-                Run(command)
-           }
-        }
-    }
-}
-
-
-
-def Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name){
-     Run("pip3 install conan --upgrade --user")
-     echo "BUILD FOLDER: ${build_folder}"
-     echo "ARTIFACTORY: ${repo_name}"
-     echo "REPOSITORY: ${url}"
-     dir(build_folder){
-        if(!isUnix()){
-           Run("git config --global core.autocrlf false")
-        }
-        checkout([$class: 'GitSCM', branches: [[name: commit ]], userRemoteConfigs: [[url: url]]])
-        writeFile file: "${build_folder}/_profile.txt", text: profile
-        def server = Artifactory.newServer url: arti_instance, credentialsId: credential
-        def client = Artifactory.newConanClient(userHome: build_folder)
-        def remoteName = client.remote.add server: server, repo: repo_name
-
-        withEnv(["CONAN_USER_HOME=${build_folder}"]){
-            def install = "conan install ${ref} -pr ${build_folder}/_profile.txt --build never -r ${remoteName}".toString()
-            def ret = Run(install, false, true)
-            if(ret != 0){
-                def create = "conan create ${build_folder} ${ref} -pr ${build_folder}/_profile.txt".toString()
-                ret = Run(create, false, true)
-                if(ret == 6){
-                  echo "Skipping configuration!"
-                }
-                else if(ret == 0){
-                  client.run(command: "remote list")
-                  def b = client.run(command: "upload ${ref} -r '${remoteName}' --all -c".toString())
-                  server.publishBuildInfo b
-                }
-                else{
-                    throw new Exception("Conan create error ${ret}")
-                }
-            }
-            else{
-                echo "Skipping, binary already found in the repository!"
-            }
-        }
-     }
-
-}
-
-
 if(current_branch == "master"){
     node("Linux"){
         stage("Merge PR packages"){
@@ -117,7 +18,7 @@ if(current_branch == "master"){
             echo "Commit message: ${commit_message}"
             // I'm not able to pass quoted message without failing...
             withEnv(["COMMIT_MESSAGE=${commit_message}"]){
-               RunCore("merge_pr", arti_instance, credential)
+               c3i.RunCore("merge_pr", arti_instance, credential)
             }
         }
     }
@@ -133,11 +34,11 @@ else{
           repo_name = "c3i_${env.BRANCH_NAME}_${commit_short}".toString()
           echo "${env.BRANCH_NAME}"
           def basedir = pwd()
-          RunCore("calculate_builds ${basedir} ${json_file_path} ${repo_name}", arti_instance, credential)
+          c3i.RunCore("calculate_builds ${basedir} ${json_file_path} ${repo_name}", arti_instance, credential)
           the_json = readJSON file: json_file_path
        }
        stage("Create Build Artifactory"){
-          RunCore("init_repo ${repo_name} ${c3i_build_number}", arti_instance, credential)
+          c3i.RunCore("init_repo ${repo_name} ${c3i_build_number}", arti_instance, credential)
           echo "https://conan.jfrog.io/conan/webapp/#/artifacts/browse/tree/Properties/${repo_name}"
        }
     }
@@ -177,16 +78,16 @@ else{
 
                       withEnv(env) {
                         if(oss != "c3i-docker"){
-                            Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+                            c3i.Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
                         }
                         else{
-                            Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
+                            c3i.Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
                         }
                       }
-                      RunCore("set_success ${repo_name} ${profile_id}", arti_instance, credential)
+                      c3i.RunCore("set_success ${repo_name} ${profile_id}", arti_instance, credential)
                   }
                   catch(error){
-                     RunCore("set_failed ${repo_name} ${profile_id}", arti_instance, credential)
+                     c3i.RunCore("set_failed ${repo_name} ${profile_id}", arti_instance, credential)
                      throw error
                   }
               }
