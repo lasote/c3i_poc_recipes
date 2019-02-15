@@ -1,4 +1,5 @@
-@Library('c3i') import jfrog.c3i.C3iEngine
+@Library('c3i')
+import jfrog.c3i.engine.C3iEngine
 
 def artifactoryURL = "https://conan.jfrog.io/conan"
 def credential = "c3i_on_artifactory"
