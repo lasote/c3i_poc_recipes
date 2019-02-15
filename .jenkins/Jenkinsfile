@@ -5,5 +5,5 @@ def credential = "c3i_on_artifactory"
 def currentBranch = "${env.BRANCH_NAME}"
 
 
-def c3i = new C3iEngine(this, artifactoryURL, credential, String winTmpPath)
-c3i.runBuild()
+def engine = new c3i.C3iEngine(this, artifactoryURL, credential, String winTmpPath)
+engine.runBuild()
