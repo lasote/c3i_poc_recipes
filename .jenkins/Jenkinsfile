@@ -1,9 +1,9 @@
-@Library('c3i')
+@Library('c3i') import C3iEngine
 
 def artifactoryURL = "https://conan.jfrog.io/conan"
 def credential = "c3i_on_artifactory"
 def currentBranch = "${env.BRANCH_NAME}"
 
 
-def engine = new c3i.C3iEngine(this, artifactoryURL, credential, String winTmpPath)
+def engine = new C3iEngine(this, artifactoryURL, credential, String winTmpPath)
 engine.runBuild()
