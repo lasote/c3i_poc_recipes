@@ -18,7 +18,7 @@ if(current_branch == "master"){
             echo "Commit message: ${commit_message}"
             // I'm not able to pass quoted message without failing...
             withEnv(["COMMIT_MESSAGE=${commit_message}"]){
-               c3i.RunCore("merge_pr", arti_instance, credential)
+                c3i.RunCore("merge_pr", arti_instance, credential)
             }
         }
     }
@@ -26,74 +26,21 @@ if(current_branch == "master"){
 else{
     def the_json
     node("Linux"){
-       def c3i_build_number = "${env.BUILD_NUMBER}"
-       stage("Calculate builds"){
-          checkout scm
-          def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-          def commit_short = commit.substring(0,7)
-          repo_name = "c3i_${env.BRANCH_NAME}_${commit_short}".toString()
-          echo "${env.BRANCH_NAME}"
-          def basedir = pwd()
-          c3i.RunCore("calculate_builds ${basedir} ${json_file_path} ${repo_name}", arti_instance, credential)
-          the_json = readJSON file: json_file_path
-       }
-       stage("Create Build Artifactory"){
-          c3i.RunCore("init_repo ${repo_name} ${c3i_build_number}", arti_instance, credential)
-          echo "https://conan.jfrog.io/conan/webapp/#/artifacts/browse/tree/Properties/${repo_name}"
-       }
-    }
-
-    the_json["stages"].eachWithIndex { group, gix ->
-      def builders = [:]
-      group.eachWithIndex { conf, cdx ->
-         def oss = conf["oss"]
-         def commit = conf["commit"].toString()
-         def ref = conf["ref"].toString()
-         def profile = conf["profile"].toString()
-         def profile_id = conf["profile_id"].toString()
-         def url = conf["url"].toString()
-         def uid = "${env.BRANCH_NAME}_${env.BUILD_NUMBER}_${gix}_${cdx}"
-
-         builders["${oss} - Stage ${gix} - Build ${cdx}"] = {
-            node(oss) {
-                stage("${oss} - Stage ${gix} - Build ${cdx}"){
-                  echo ref
-                  echo profile
-                  def curdir = pwd().toString()
-                  def build_folder = "${curdir}/package_repo/${uid}".toString()
-                  if(oss == "Windows"){
-                    build_folder = win_tmp_path + "/${uid}"
-                  }
-
-                  def env = []
-                  if(oss == "Macos"){
-                      env = ['PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin']
-                  }
-                  try{
-                      // REMOVE THIS!!!
-                      if(profile.contains("NEVERHAPPEN")){
-                        print("FALLANDO APOSTA")
-                        throw new Exception("I made this fail, because I'm evil")
-                      }
-
-                      withEnv(env) {
-                        if(oss != "c3i-docker"){
-                            c3i.Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
-                        }
-                        else{
-                            c3i.Process(build_folder, commit, url, profile, ref, arti_instance, credential, repo_name)
-                        }
-                      }
-                      c3i.RunCore("set_success ${repo_name} ${profile_id}", arti_instance, credential)
-                  }
-                  catch(error){
-                     c3i.RunCore("set_failed ${repo_name} ${profile_id}", arti_instance, credential)
-                     throw error
-                  }
-              }
-          }
+        def c3i_build_number = "${env.BUILD_NUMBER}"
+        stage("Calculate builds"){
+            checkout scm
+            def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+            def commit_short = commit.substring(0,7)
+            repo_name = "c3i_${env.BRANCH_NAME}_${commit_short}".toString()
+            echo "${env.BRANCH_NAME}"
+            def basedir = pwd()
+            c3i.RunCore("calculate_builds ${basedir} ${json_file_path} ${repo_name}", arti_instance, credential)
+            the_json = readJSON file: json_file_path
         }
-      }
-      parallel builders
+        stage("Create Build Artifactory"){
+            c3i.RunCore("init_repo ${repo_name} ${c3i_build_number}", arti_instance, credential)
+            echo "https://conan.jfrog.io/conan/webapp/#/artifacts/browse/tree/Properties/${repo_name}"
+        }
     }
+    c3i.runStages(the_json["stages"], arti_instance, credential, repo_name)
 }
