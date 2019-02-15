@@ -1,46 +1,9 @@
 @Library('c3i')
 
-def arti_instance = "https://conan.jfrog.io/conan"
+def artifactoryURL = "https://conan.jfrog.io/conan"
 def credential = "c3i_on_artifactory"
-def artifactory_name = "ArtifactoryConan"
-
-def win_tmp_path = "C:/J/c3ipr"
-def json_file_path = 'c3i_configs.json'
-def repo_name
-def current_branch = "${env.BRANCH_NAME}"
+def currentBranch = "${env.BRANCH_NAME}"
 
 
-if(current_branch == "master"){
-    node("Linux"){
-        stage("Merge PR packages"){
-            checkout scm
-            def commit_message = sh(returnStdout: true, script: 'git show -s --format="format:%s"').trim()
-            echo "Commit message: ${commit_message}"
-            // I'm not able to pass quoted message without failing...
-            withEnv(["COMMIT_MESSAGE=${commit_message}"]){
-                c3i.RunCore("merge_pr", arti_instance, credential)
-            }
-        }
-    }
-}
-else{
-    def the_json
-    node("Linux"){
-        def c3i_build_number = "${env.BUILD_NUMBER}"
-        stage("Calculate builds"){
-            checkout scm
-            def commit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-            def commit_short = commit.substring(0,7)
-            repo_name = "c3i_${env.BRANCH_NAME}_${commit_short}".toString()
-            echo "${env.BRANCH_NAME}"
-            def basedir = pwd()
-            c3i.RunCore("calculate_builds ${basedir} ${json_file_path} ${repo_name}", arti_instance, credential)
-            the_json = readJSON file: json_file_path
-        }
-        stage("Create Build Artifactory"){
-            c3i.RunCore("init_repo ${repo_name} ${c3i_build_number}", arti_instance, credential)
-            echo "https://conan.jfrog.io/conan/webapp/#/artifacts/browse/tree/Properties/${repo_name}"
-        }
-    }
-    c3i.runStages(the_json["stages"], arti_instance, credential, repo_name)
-}
+def c3i = new C3iEngine(this, artifactoryURL, credential, String winTmpPath)
+c3i.runBuild()
