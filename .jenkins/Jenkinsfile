@@ -1,6 +1,5 @@
 @Library('c3i')
-import org.jfrog.artifactory.model.*
-import org.jfrog.artifactory.*
+import org.jfrog.artifactory.client.model.Repository
 import main.groovy.org.jfrog.c3i.ConanArtifactoryRest
 import main.groovy.org.jfrog.c3i.C3iEngine
 
