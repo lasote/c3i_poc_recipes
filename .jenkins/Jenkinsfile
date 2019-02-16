@@ -1,4 +1,6 @@
-@Library('c3i') import main.groovy.org.jfrog.c3i.C3iEngine
+@Library('c3i')
+import main.groovy.org.jfrog.c3i.ConanArtifactoryRest
+import main.groovy.org.jfrog.c3i.C3iEngine
 
 def engine = new C3iEngine(this, "https://conan.jfrog.io/conan")
 engine.runBuild()
