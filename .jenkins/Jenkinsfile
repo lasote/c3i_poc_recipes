@@ -2,19 +2,21 @@
 
 def artifactoryID = "ArtifactoryConan"
 def artifactoryCredentials = "c3i_on_artifactory"
+def artifactoryURL = "https://conan.jfrog.io/conan"
 
 def user
 def password
-def url = "https://conan.jfrog.io/conan"
+
 
 withCredentials([usernamePassword(credentialsId: artifactoryCredentials,
-                                  usernameVariable: 'ARTIUSER',
-                                  passwordVariable: 'ARTIPASS')]) {
-    user = env.ARTIUSER
-    password = env.ARTIPASS
+                                  usernameVariable: 'ARTI_USER',
+                                  passwordVariable: 'ARTI_PASS')]) {
+    user = env.ARTI_USER
+    password = env.ARTI_PASS
 }
 
 echo "HI THERE!"
+echo "HI ${c3i}"
 
-runBuild(this, url, user, password)
+runBuild(this, artifactoryURL, user, password)
 
