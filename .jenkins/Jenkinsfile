@@ -1,7 +1,7 @@
 @Library('c3i') _
 
 
-withCredentials([usernamePassword(credentialsId: artifactoryCredentialName, usernameVariable: 'ARTIUSER', passwordVariable: 'ARTIPASS')]) {
+withCredentials([usernamePassword(credentialsId: 'c3i_on_artifactory', usernameVariable: 'ARTIUSER', passwordVariable: 'ARTIPASS')]) {
     c3i.runBuild(this, env.ARTIURL, env.ARTIUSER, env.ARTIPASS)
 }
 
