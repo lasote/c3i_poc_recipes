@@ -16,5 +16,5 @@ withCredentials([usernamePassword(credentialsId: artifactoryCredentials,
 
 echo "HI THERE!"
 
-c3i.c3i.runBuild(this, url, user, password)
+runBuild(this, url, user, password)
 
