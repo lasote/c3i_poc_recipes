@@ -1,3 +1,8 @@
 @Library('c3i') _
 
-c3i.runC3iRecipeBuild(this)
+
+withCredentials([usernamePassword(credentialsId: artifactoryCredentialName, usernameVariable: 'ARTIUSER', passwordVariable: 'ARTIPASS')]) {
+    c3i.runBuild(this, env.ARTIURL, env.ARTIUSER, env.ARTIPASS)
+}
+
+
