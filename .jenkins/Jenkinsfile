@@ -1,4 +1,22 @@
-@Library('c3i') import jfrog.c3i.C3iEngine
+@Library('c3i') _
 
-def engine = new C3iEngine(this, "https://conan.jfrog.io/conan")
-engine.runBuild()
+def artifactoryID = "ArtifactoryConan"
+def artifactoryCredentials = "c3i_on_artifactory"
+def artifactoryURL = "https://conan.jfrog.io/conan"
+
+def user
+def password
+
+
+withCredentials([usernamePassword(credentialsId: artifactoryCredentials,
+                                  usernameVariable: 'ARTI_USER',
+                                  passwordVariable: 'ARTI_PASS')]) {
+    user = env.ARTI_USER
+    password = env.ARTI_PASS
+}
+
+echo "HI THERE!"
+
+c3iManager.runBuild(this, artifactoryURL, user, password, artifactoryID)
+
+
