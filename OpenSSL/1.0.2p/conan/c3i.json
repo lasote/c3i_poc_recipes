@@ -1,6 +1,6 @@
 {"url": "https://github.com/conan-community/conan-openssl.git",
  "commit": "f4f381b1a7c4d9133219a7b2037b6475992e04a7",
  "pure_c": true,
- "shared_option": true,
+ "shared_option": true
 
 }
