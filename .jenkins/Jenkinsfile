@@ -1,6 +1,5 @@
 @Library('c3i') _
 
-def artifactoryID = "ArtifactoryConan"
 def artifactoryCredentials = "c3i_on_artifactory"
 def artifactoryURL = "https://conan.jfrog.io/conan"
 
@@ -15,6 +14,6 @@ withCredentials([usernamePassword(credentialsId: artifactoryCredentials,
     password = env.ARTI_PASS
 }
 
-c3iManager.runBuild(this, artifactoryURL, user, password, artifactoryID)
+c3iManager.runBuild(this, artifactoryURL, user, password)
 
 
