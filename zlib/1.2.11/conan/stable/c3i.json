@@ -1,0 +1,7 @@
+{
+"url": "https://github.com/conan-community/conan-zlib.git",
+"commit": "9d08c35cfd85521b35aefb19ae79e99ed8ca5b54",
+"pure_c": true,
+"shared_available": true,
+"header_only": false
+}
