@@ -3,10 +3,9 @@
 
 ## C3I: Generate automatically the binaries for your Conan recipes at Bintray:conan-center
 
-You can contribute with your Conan package to the [JFrog Bintray "conan-center" central repository](https://bintray.com/conan/conan-center) by submitting a Pull Request to this repository:
 
 - Fork this repository
-- Add a new `c3i.json` file poiting to your repository containing the recipe in a folder "package_name/package_version/username". E.g `mylibrary/1.8.1/myusername` you can use any `myusername`, for example your github nickname.
+- Add a new `c3i.json` file poiting to your repository containing the recipe in a folder "package_name/package_version/username/stable". E.g `mylibrary/1.8.1/myusername` you can use any `myusername`, for example your github nickname.
    
  ```json
  {
@@ -24,22 +23,4 @@ Conan will generate more than a hundred binary packages for the mainstream confi
 - Apple-clang: =  8.1, 9.0, 10.0
 
 For each version, `x86, x86_64` and `Release, Debug` packages
-
-
-# About JFrog Bintray
-JFrog Bintray is a cloud platform that gives you full control over how you publish, store, promote, and distribute software. As a universal distribution platform, Bintray supports all file formats and offers advanced integration with common development technologies including:
-
-- Docker
-- Conan
-- Debian
-- Maven
-- RPM
-- npm
-- NuGet
-- Vagrant
-- Opkg
-
-You can create your personal [Bintray account](https://bintray.com) free repositories for many different package managers, as Debian, Docker, NPM... including also Conan repositories for Open Source projects.
-
-
 
