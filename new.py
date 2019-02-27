@@ -32,7 +32,7 @@ def run():
         exit(-1)
     dir_path = os.path.dirname(os.path.realpath(__file__))
     name, version, user, channel = parse_ref(sys.argv[1])
-    dest_dir = os.path.join(dir_path, name, version, user, channel)
+    dest_dir = os.path.join("index", dir_path, name, version, user, channel)
     if os.path.exists(dest_dir):
         print("The reference already exists!")
         exit(-1)
