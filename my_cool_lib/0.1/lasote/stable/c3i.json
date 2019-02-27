@@ -1,0 +1,7 @@
+{
+"url": "https://github.com/lasote/conan-cool-lib.git",
+"commit": "b613c0b8603ee57f2a9e597ef31cb9623cba7b81",
+"pure_c": true,
+"shared_available": true,
+"header_only": false
+}
